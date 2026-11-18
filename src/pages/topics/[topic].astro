@@ -1,0 +1,32 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import UnitNav from '../../components/UnitNav.astro';
+import EntryList from '../../components/EntryList.astro';
+import { entriesForTopic, topics } from '../../lib/catalog';
+import { playPath, sitePath, unitPath } from '../../lib/paths';
+
+export function getStaticPaths() {
+  return topics.map(topic => ({ params: { topic: topic.id }, props: { topic } }));
+}
+const { topic } = Astro.props;
+---
+<Layout title={`${topic.id} ${topic.en}`} active="units">
+  <div class="frame reading">
+    <UnitNav unitId={topic.unitId} topicId={topic.id} />
+    <div>
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href={sitePath('#units')}>Units</a><span aria-hidden="true">/</span><a href={unitPath(topic.unitId)}>Unit {topic.unitId}</a><span aria-hidden="true">/</span><span>{topic.id}</span>
+      </nav>
+      <header class="page-intro">
+        <span class="unit-chip">Topic {topic.id}</span>
+        <h1>{topic.en}</h1>
+        <p class="subtitle" lang="zh">{topic.zh}</p>
+      </header>
+      {topic.unitId === 1 && <aside class="play-callout">
+        <p><strong>Market Missions <span lang="zh">市场挑战</span></strong></p>
+        <a class="button button-solid" href={playPath(topic.id)}>Play this topic <span lang="zh">本节闯关</span></a>
+      </aside>}
+      <EntryList entries={entriesForTopic(topic.id)} />
+    </div>
+  </div>
+</Layout>

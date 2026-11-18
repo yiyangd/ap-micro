@@ -1,0 +1,51 @@
+---
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-700.css';
+import '@fontsource/inter/latin-800.css';
+import '../styles/site.css';
+import { official, sitePath } from '../lib/paths';
+
+interface Props { title?: string; active?: 'units' | 'exams' | 'search' }
+const { title, active } = Astro.props;
+const pageTitle = title ? `${title} · STEMHUB AP Micro` : 'STEMHUB · AP Microeconomics';
+const links = [
+  { key: 'units', href: sitePath('#units'), en: 'Units', zh: '单元' },
+  { key: 'exams', href: sitePath('exams/'), en: 'Past exams', zh: '历年真题' },
+  { key: 'search', href: sitePath('questions/'), en: 'Search', zh: '搜题' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A bilingual AP Microeconomics past-exam index by topic, plus six interactive Unit 1 Market Missions." />
+    <meta name="theme-color" content="#14253d" />
+    {Astro.site && <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip" href="#main-content">Skip to content</a>
+    <header class="masthead">
+      <div class="frame masthead-inner">
+        <a class="brand" href={sitePath()} aria-label="STEMHUB AP Micro home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>STEMHUB <span class="brand-separator">/</span> <strong>AP Micro</strong></span>
+        </a>
+        <nav class="masthead-nav" aria-label="Main navigation">
+          {links.map(link => (
+            <a href={link.href} aria-current={active === link.key ? 'page' : undefined}><span>{link.en}</span> <span lang="zh">{link.zh}</span></a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main-content"><slot /></main>
+    <footer class="frame footer">
+      <span><strong>STEMHUB</strong> <span class="brand-separator">/</span> AP Microeconomics</span>
+      <a href={official.framework}>College Board framework <span lang="zh">课程纲要</span></a>
+      <a href={official.archive}>AP Central FRQ <span lang="zh">官方真题</span></a>
+    </footer>
+  </body>
+</html>

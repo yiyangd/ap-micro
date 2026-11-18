@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EntryList from '../components/EntryList.astro';
+import { entries } from '../lib/catalog';
+---
+<Layout title="Search questions" active="search">
+  <div class="frame wide-page">
+    <header class="page-intro">
+      <h1>Search questions</h1>
+      <p class="subtitle" lang="zh">搜索真题索引</p>
+      <p class="intro-note">Search by question number, year, or topic in English or Chinese. <span lang="zh">可用题号、年份或中英文考点搜索。</span></p>
+    </header>
+    <EntryList entries={entries} />
+  </div>
+</Layout>

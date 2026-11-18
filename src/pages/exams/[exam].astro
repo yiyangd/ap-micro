@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EntryCard from '../../components/Entry.astro';
+import { categoryLabels, entriesForQuestion, exams, kindLabels } from '../../lib/catalog';
+import { official, sitePath } from '../../lib/paths';
+
+export function getStaticPaths() {
+  return exams.map(exam => ({ params: { exam: exam.id }, props: { exam } }));
+}
+const { exam } = Astro.props;
+const title = `${exam.year} ${exam.kind} · ${exam.form}`;
+const category = categoryLabels[exam.category];
+const kind = kindLabels[exam.kind];
+---
+<Layout title={title} active="exams">
+  <div class="frame wide-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={sitePath('exams/')}>Past exams</a><span aria-hidden="true">/</span><span>{title}</span></nav>
+    <header class="page-intro">
+      <h1>{title}</h1>
+      <p class="subtitle">{kind.en} <span lang="zh">{kind.zh}</span> · {category.en} <span lang="zh">{category.zh}</span></p>
+      {exam.note && <p class="intro-note">{exam.note}</p>}
+      <div class="source-links">
+        {exam.paperUrl && <a class="button button-light" href={exam.paperUrl}>Official paper <span lang="zh">官方题卷</span></a>}
+        {exam.scoringUrl && <a class="button button-light" href={exam.scoringUrl}>Official scoring <span lang="zh">官方评分标准</span></a>}
+        {!exam.paperUrl && exam.kind === 'FRQ' && <a class="button button-light" href={official.archive}>AP Central FRQ archive <span lang="zh">官方 FRQ 档案</span></a>}
+        {!exam.paperUrl && exam.kind === 'MCQ' && <a class="button button-light" href={official.classroom}>AP Classroom</a>}
+      </div>
+    </header>
+    {exam.questions.length > 0 ? <>
+      <ol class="paper-nav" aria-label="Jump to question">
+        {exam.questions.map(question => <li><a href={`#q${question.number}`}>Q{question.number}</a></li>)}
+      </ol>
+      <div class="paper-list">
+        {exam.questions.map(question => {
+          const parts = entriesForQuestion(exam, question);
+          return question.parts?.length
+            ? <section class="paper-question" id={`q${question.number}`} aria-label={`Question ${question.number}`}>
+              <h2>Question {question.number} <span lang="zh">第 {question.number} 题</span></h2>
+              {parts.map(entry => <EntryCard entry={entry} detail />)}
+            </section>
+            : <section id={`q${question.number}`} class="paper-question" aria-label={`Question ${question.number}`}>
+              {parts.map(entry => <EntryCard entry={entry} detail single />)}
+            </section>;
+        })}
+      </div>
+    </> : <p class="no-results">The question index for this form is under review. <span lang="zh">此卷题目索引待核对。</span></p>}
+  </div>
+</Layout>

@@ -1,0 +1,34 @@
+---
+import { type Entry, categoryLabels, entryPath, sourcePage, topicLinks } from '../lib/catalog';
+interface Props { entry: Entry; detail?: boolean; single?: boolean }
+const { entry, detail = false, single = false } = Astro.props;
+const { exam, number, part, page, summary } = entry;
+const tags = topicLinks([entry.topic, ...(entry.secondary ?? [])]);
+const questionId = `Q${number}${part}`;
+const examLabel = `${exam.year} ${exam.kind} · ${exam.form}`;
+const search = [examLabel, questionId, `${exam.year}Q${number}${part}`, summary.en, summary.zh, ...tags.flatMap(tag => [tag.id, tag.en, tag.zh])].join(' ');
+---
+<article class="entry"
+  id={detail && !single ? entry.anchor : undefined}
+  data-filter-item={!detail || undefined}
+  data-year={exam.year}
+  data-kind={exam.kind}
+  data-form={exam.form}
+  data-question={!detail ? number : undefined}
+  data-part={!detail && part ? part : undefined}
+  data-search={!detail ? search : undefined}>
+  <div class="entry-top">
+    {detail
+      ? <a class="entry-id" href={entryPath(entry)} aria-label={`Link to ${questionId}`}>{questionId}</a>
+      : <a class="entry-id" href={entryPath(entry)}>{examLabel} · {questionId}</a>}
+    {exam.paperUrl
+      ? <a class="entry-page" href={sourcePage(exam.paperUrl, page)}>Official paper p. {page} <span lang="zh">官方题面</span></a>
+      : <span class="entry-page">Source p. {page} <span lang="zh">原卷页</span></span>}
+  </div>
+  <p class="entry-summary">{summary.en}</p>
+  <p class="entry-zh" lang="zh">{summary.zh}</p>
+  <div class="topic-tags">
+    {tags.map(tag => <a href={tag.href} title={tag.zh}>{tag.id} {tag.en}</a>)}
+    {exam.category !== 'exam' && <span class="status-chip">{categoryLabels[exam.category].en} <span lang="zh">{categoryLabels[exam.category].zh}</span></span>}
+  </div>
+</article>

@@ -1,0 +1,30 @@
+---
+import { units } from '../lib/catalog';
+import { topicPath, unitPath } from '../lib/paths';
+interface Props { unitId: number; topicId?: string }
+const { unitId, topicId } = Astro.props;
+---
+<aside class="unit-sidebar" aria-label="Course contents">
+  <details class="mobile-units">
+    <summary>Course units <span lang="zh">课程单元</span></summary>
+    <ul class="sidebar-list">
+      {units.map(unit => <li><a href={unitPath(unit.id)} aria-current={unit.id === unitId ? 'page' : undefined}>{unit.id}. {unit.en}</a></li>)}
+    </ul>
+  </details>
+  <nav class="desktop-units" aria-label="Course units and topics">
+    <p class="eyebrow">Course contents <span lang="zh">课程目录</span></p>
+    <ul class="sidebar-list">
+      {units.map(unit => (
+        <li>
+          <a class:list={{'current-unit': unit.id === unitId}} href={unitPath(unit.id)} aria-current={unit.id === unitId && !topicId ? 'page' : undefined}>
+            <span class="sidebar-number">0{unit.id}</span>
+            <span>{unit.en}<small lang="zh">{unit.zh}</small></span>
+          </a>
+          {unit.id === unitId && <ul class="sidebar-topics">
+            {unit.topics.map(topic => <li><a href={topicPath(topic.id)} aria-current={topic.id === topicId ? 'page' : undefined}><span>{topic.id}</span> {topic.en}</a></li>)}
+          </ul>}
+        </li>
+      ))}
+    </ul>
+  </nav>
+</aside>

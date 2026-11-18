@@ -1,0 +1,36 @@
+---
+interface Props { noun: 'questions' | 'papers'; years: number[]; forms: string[] }
+const { noun, years, forms } = Astro.props;
+---
+<div data-filter-scope data-filter-type={noun} data-page-size={noun === 'questions' ? 24 : 18}>
+  <form class="filters" data-filter-form hidden role="search">
+    <div class="filters-grid">
+      <label class="query-field"><span>Search <span lang="zh">搜索</span></span><input name="q" type="search" placeholder={noun === 'questions' ? '2019 Q2, elasticity, 弹性…' : 'Year, type, or form…'} autocomplete="off" /></label>
+      <label><span>Year <span lang="zh">年份</span></span><select name="year">
+        <option value="">All years</option>
+        {years.map(year => <option value={year}>{year}</option>)}
+      </select></label>
+      <label><span>Type <span lang="zh">题型</span></span><select name="kind">
+        <option value="">MCQ + FRQ</option><option value="MCQ">MCQ 选择题</option><option value="FRQ">FRQ 简答题</option>
+      </select></label>
+      <label><span>Form / Set <span lang="zh">卷别</span></span><select name="form">
+        <option value="">All forms</option>
+        {forms.map(form => <option value={form}>{form}</option>)}
+      </select></label>
+    </div>
+  </form>
+  <div class="filter-status" data-filter-status hidden>
+    <span data-result-count role="status"></span>
+    <button class="text-button" type="button" data-clear hidden>Clear filters <span lang="zh">清除筛选</span></button>
+  </div>
+  <div class="filter-list" data-filter-list><slot /></div>
+  <p class="no-results" data-no-results hidden>No matches for these filters. <span lang="zh">当前筛选没有匹配项。</span></p>
+  <nav class="pagination" aria-label="Results pages" data-pagination hidden>
+    <button class="button button-light" type="button" data-previous>Previous <span lang="zh">上一页</span></button>
+    <span data-page-indicator></span>
+    <button class="button button-light" type="button" data-next>Next <span lang="zh">下一页</span></button>
+  </nav>
+</div>
+<script>
+  import '../scripts/filters';
+</script>

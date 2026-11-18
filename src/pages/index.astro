@@ -1,0 +1,66 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { entries, frqCount, mcqCount, primaryCount, releasedYears, topics, units } from '../lib/catalog';
+import { playPath, sitePath, unitPath } from '../lib/paths';
+
+const briefs = [
+  'Scarcity, trade, and choosing at the margin.',
+  'Market equilibrium, elasticities, and policy.',
+  'Costs, profit, and the competitive firm.',
+  'Monopoly, product differentiation, and strategic choices.',
+  'The demand for labor and other inputs.',
+  'Externalities, public goods, and inequality.',
+];
+---
+<Layout active="units">
+  <div class="frame home">
+    <section class="hero" aria-labelledby="home-heading">
+      <div class="hero-content">
+        <h1 id="home-heading">AP Microeconomics</h1>
+        <p class="hero-zh" lang="zh">AP 微观经济学 · 真题索引</p>
+        <p class="hero-description">Find past-exam questions by concept, or explore Unit 1 in Market Missions.</p>
+        <div class="hero-actions">
+          <a class="button button-lime" href={sitePath('questions/')}>Search questions <span lang="zh">搜题</span></a>
+          <a class="button button-ghost" href={playPath()}>Play Unit 1 <span lang="zh">第一单元闯关</span></a>
+        </div>
+      </div>
+      <figure class="hero-figure" aria-label="A supply curve and a demand curve intersect at market equilibrium.">
+        <div class="chart" aria-hidden="true">
+          <span class="axis-price">Price</span><span class="axis-quantity">Quantity</span>
+          <span class="curve demand"></span><span class="curve supply"></span>
+          <span class="curve-title label-supply">S</span><span class="curve-title label-demand">D</span>
+          <span class="chart-guide guide-v"></span><span class="chart-guide guide-h"></span>
+          <span class="chart-point"></span>
+        </div>
+        <figcaption>Market equilibrium <span lang="zh">市场均衡</span></figcaption>
+      </figure>
+    </section>
+    <dl class="metrics" aria-label="Catalog totals">
+      <div><dt>Units <span lang="zh">单元</span></dt><dd>{units.length}</dd></div>
+      <div><dt>Topics <span lang="zh">考点</span></dt><dd>{topics.length}</dd></div>
+      <div><dt>MCQ entries <span lang="zh">选择题索引</span></dt><dd>{mcqCount.toLocaleString('en')}</dd></div>
+      <div><dt>FRQ entries <span lang="zh">简答题与小问</span></dt><dd>{frqCount.toLocaleString('en')}</dd></div>
+    </dl>
+    <section class="home-units" aria-labelledby="units">
+      <div class="section-heading">
+        <div>
+          <h2 id="units">Browse by unit</h2>
+          <p lang="zh">按课程单元浏览</p>
+        </div>
+        {releasedYears.length > 0 && <a class="text-link" href={sitePath('exams/')}>Past-exam archive <span lang="zh">历年卷目录</span></a>}
+      </div>
+      <div class="unit-grid">
+        {units.map((unit, index) => (
+          <a class="unit-card" href={unitPath(unit.id)}>
+            <div class="card-top"><span class="unit-chip">Unit 0{unit.id}</span><span>{unit.weight} of MCQ</span></div>
+            <h3>{unit.en}</h3>
+            <p class="unit-zh" lang="zh">{unit.zh}</p>
+            <p class="unit-brief">{briefs[index]}</p>
+            <p class="card-count">{unit.topics.length} topics <span aria-hidden="true">·</span> {primaryCount(unit.topics.map(topic => topic.id))} entries</p>
+          </a>
+        ))}
+      </div>
+      {entries.length > 0 && <p class="count-note">Counts include indexed exam questions, practice questions and labeled forms under source review. FRQs are counted by smallest indexed part, and unit totals use primary classifications. <span lang="zh">统计涵盖已编目的真题、练习题和标明来源待核的卷别。FRQ 按最小已编目小问计数，单元按主考点计数。</span></p>}
+    </section>
+  </div>
+</Layout>

@@ -1,0 +1,37 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import UnitNav from '../../components/UnitNav.astro';
+import { entriesForTopic, units } from '../../lib/catalog';
+import { playPath, sitePath, topicPath } from '../../lib/paths';
+
+export function getStaticPaths() {
+  return units.map(unit => ({ params: { unit: String(unit.id) }, props: { unit } }));
+}
+const { unit } = Astro.props;
+---
+<Layout title={unit.en} active="units">
+  <div class="frame reading">
+    <UnitNav unitId={unit.id} />
+    <div>
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={sitePath('#units')}>Units</a><span aria-hidden="true">/</span><span>Unit {unit.id}</span></nav>
+      <header class="page-intro">
+        <span class="unit-chip">Unit 0{unit.id}</span>
+        <h1>{unit.en}</h1>
+        <p class="subtitle" lang="zh">{unit.zh}</p>
+        <p class="intro-note">MCQ exam weighting {unit.weight} <span lang="zh">选择题考查比重</span></p>
+      </header>
+      {unit.id === 1 && <section class="play-callout" aria-label="Unit 1 Market Missions">
+        <div><strong>Market Missions <span lang="zh">市场挑战</span></strong><p>Six original scenarios, from scarcity to consumer choice. <span lang="zh">六关原创练习。</span></p></div>
+        <a class="button button-solid" href={playPath()}>Play Unit 1 <span lang="zh">开始闯关</span></a>
+      </section>}
+      <div class="topic-grid">
+        {unit.topics.map(topic => (
+          <a class="topic-card" href={topicPath(topic.id)}>
+            <span class="unit-chip">{topic.id}</span>
+            <span><strong>{topic.en}</strong><small lang="zh">{topic.zh}</small><small>{entriesForTopic(topic.id).length} entries</small></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</Layout>

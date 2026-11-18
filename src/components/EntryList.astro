@@ -1,0 +1,12 @@
+---
+import Filters from './Filters.astro';
+import EntryCard from './Entry.astro';
+import type { Entry } from '../lib/catalog';
+interface Props { entries: Entry[] }
+const { entries } = Astro.props;
+const years = [...new Set(entries.map(entry => entry.exam.year))].sort((a, b) => b - a);
+const forms = [...new Set(entries.map(entry => entry.exam.form))].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+---
+{entries.length ? <Filters noun="questions" years={years} forms={forms}>
+  {entries.map(entry => <EntryCard entry={entry} />)}
+</Filters> : <p class="no-results">This topic has no indexed entries yet. <span lang="zh">这个考点暂无已编目的条目。</span></p>}
