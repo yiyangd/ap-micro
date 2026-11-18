@@ -72,10 +72,48 @@ for (const unit of units) {
   await readBuild('units/' + unit.id + '/index.html');
   for (const [code] of unit.topics) {
     const html = await readBuild('topics/' + code + '/index.html');
-    if (unit.id === 1) assert.ok(html.includes(base + 'play/?topic=' + code), 'Missing game link for ' + code);
+    assert.ok(html.includes(base + 'play/?topic=' + code), 'Missing game link for ' + code);
   }
 }
 for (const page of ['index.html', 'questions/index.html', 'exams/index.html', 'play/index.html']) await readBuild(page);
+
+// Monster Shooter: one level per topic, three steps, one right answer and two hinted distractors per step.
+const playHtml = await readBuild('play/index.html');
+const dataMatch = playHtml.match(/<script id="shooter-data" type="application\/json">([\s\S]*?)<\/script>/);
+assert.ok(dataMatch, 'Play page is missing its level data');
+const shooter = JSON.parse(dataMatch[1]);
+assert.deepEqual(shooter.sections.map(section => section.id), units.map(unit => String(unit.id)));
+let levels = 0;
+const figures = new Set();
+for (const [index, section] of shooter.sections.entries()) {
+  assert.deepEqual(section.encounters.map(level => level.id), units[index].topics.map(topic => topic[0]), 'Unit ' + section.id + ' levels must follow its topics');
+  assert.ok(playHtml.includes('data-start-section="' + section.id + '"'), 'Missing start button for unit ' + section.id);
+  for (const level of section.encounters) {
+    levels += 1;
+    const where = 'Level ' + level.id;
+    assert.equal(level.url, base + 'topics/' + level.id + '/', where + ' links to the wrong topic');
+    assert.ok(level.monster.boss === (level === section.encounters.at(-1)), where + ' boss flag');
+    for (const field of [level.method.title, level.stem]) assert.ok(field.en.trim() && /\p{Script=Han}/u.test(field.zh), where + ' needs English and Chinese text');
+    assert.equal(level.steps.length, 3, where + ' needs three steps');
+    for (const [s, step] of level.steps.entries()) {
+      assert.deepEqual(Object.keys(step.options), ['A', 'B', 'C'], where + ' step ' + (s + 1) + ' options');
+      assert.ok(['A', 'B', 'C'].includes(step.correct), where + ' step ' + (s + 1) + ' answer');
+      for (const [key, option] of Object.entries(step.options)) {
+        assert.ok(option.text.en.trim() && option.text.zh.trim(), where + ' option text');
+        if (key !== step.correct) assert.ok(option.hint?.en.trim() && /\p{Script=Han}/u.test(option.hint.zh), where + ' step ' + (s + 1) + ' distractor ' + key + ' needs a bilingual hint');
+      }
+      assert.ok(step.explanation.en.trim() && /\p{Script=Han}/u.test(step.explanation.zh), where + ' explanation');
+      assert.ok(step.takeaway.en.trim(), where + ' takeaway');
+    }
+    if (level.figure) figures.add(level.figure.src);
+    if (level.table) for (const row of level.table.rows) assert.equal(row.length, level.table.columns.length, where + ' table row width');
+  }
+}
+assert.equal(levels, codes.size, 'Every topic needs a Monster Shooter level');
+for (const src of figures) {
+  assert.ok(src.startsWith(base + 'game/figures/') && src.endsWith('.svg'), 'Unexpected figure ' + src);
+  assert.ok((await stat(new URL(src.slice(base.length), dist))).isFile(), 'Missing figure ' + src);
+}
 
 const files = await readdir(dist, { recursive: true, withFileTypes: true });
 assert.ok(files.every(file => !/\.(?:pdf|jpe?g|zip)$/i.test(file.name)), 'A raw source or archive entered the public build');
@@ -108,4 +146,4 @@ for (const [file, html] of documents) {
   }
 }
 
-console.log('Validated ' + exams.length + ' forms, ' + indexed + ' question/part entries, ' + codes.size + ' topics, and ' + documents.size + ' HTML pages.');
+console.log('Validated ' + exams.length + ' forms, ' + indexed + ' question/part entries, ' + codes.size + ' topics, ' + levels + ' game levels, and ' + documents.size + ' HTML pages.');

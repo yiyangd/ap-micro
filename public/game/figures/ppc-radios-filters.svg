@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" font-family="Segoe UI, system-ui, -apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+  <title>Production possibilities frontier for radios and filters</title>
+  <rect width="400" height="300" fill="#ffffff"/>
+  <!-- grid -->
+  <g stroke="#e2e8f0" stroke-width="1">
+    <line x1="50" y1="90" x2="340" y2="90"/>
+    <line x1="50" y1="124" x2="340" y2="124"/>
+    <line x1="50" y1="158" x2="340" y2="158"/>
+    <line x1="50" y1="56" x2="340" y2="56"/>
+    <line x1="140" y1="40" x2="140" y2="260"/>
+    <line x1="230" y1="40" x2="230" y2="260"/>
+    <line x1="320" y1="40" x2="320" y2="260"/>
+  </g>
+  <!-- axes -->
+  <g stroke="#0f172a" stroke-width="2" fill="none">
+    <path d="M50 30 V260 H360"/>
+    <path d="M45 38 L50 28 L55 38"/>
+    <path d="M352 255 L362 260 L352 265"/>
+  </g>
+  <g fill="#334155" font-size="13" text-anchor="middle">
+    <text x="50" y="278">0</text><text x="140" y="278">2</text><text x="230" y="278">4</text><text x="320" y="278">6</text>
+  </g>
+  <g fill="#334155" font-size="13" text-anchor="end">
+    <text x="42" y="60">12</text><text x="42" y="94">10</text><text x="42" y="128">8</text><text x="42" y="162">6</text>
+  </g>
+  <text x="372" y="292" fill="#0f172a" font-size="13" font-weight="600" text-anchor="end">Radios 收音机</text>
+  <text x="58" y="22" fill="#0f172a" font-size="13" font-weight="600">Filters 净水器</text>
+  <!-- frontier -->
+  <polyline points="50,56 140,90 230,158 320,260" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round"/>
+  <g fill="#2563eb">
+    <circle cx="50" cy="56" r="5"/><circle cx="140" cy="90" r="5"/><circle cx="230" cy="158" r="5"/><circle cx="320" cy="260" r="5"/>
+  </g>
+  <text x="250" y="200" fill="#2563eb" font-size="14" font-weight="700">PPF</text>
+  <!-- target -->
+  <line x1="230" y1="124" x2="230" y2="158" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="230" cy="124" r="6" fill="#ffffff" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="242" y="118" fill="#dc2626" font-size="13" font-weight="700">Target (4, 8)</text>
+</svg>

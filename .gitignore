@@ -7,3 +7,8 @@ playwright-report/
 test-results/
 __pycache__/
 *.local
+
+# Local source PDFs (College Board materials) stay on this machine
+/AP微观经济学*/
+*.pdf
+.claude/

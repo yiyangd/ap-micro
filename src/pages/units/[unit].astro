@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import UnitNav from '../../components/UnitNav.astro';
 import { entriesForTopic, units } from '../../lib/catalog';
-import { playPath, sitePath, topicPath } from '../../lib/paths';
+import { playUnitPath, sitePath, topicPath } from '../../lib/paths';
 
 export function getStaticPaths() {
   return units.map(unit => ({ params: { unit: String(unit.id) }, props: { unit } }));
@@ -20,10 +20,10 @@ const { unit } = Astro.props;
         <p class="subtitle" lang="zh">{unit.zh}</p>
         <p class="intro-note">MCQ exam weighting {unit.weight} <span lang="zh">选择题考查比重</span></p>
       </header>
-      {unit.id === 1 && <section class="play-callout" aria-label="Unit 1 Market Missions">
-        <div><strong>Market Missions <span lang="zh">市场挑战</span></strong><p>Six original scenarios, from scarcity to consumer choice. <span lang="zh">六关原创练习。</span></p></div>
-        <a class="button button-solid" href={playPath()}>Play Unit 1 <span lang="zh">开始闯关</span></a>
-      </section>}
+      <section class="play-callout" aria-label={`Unit ${unit.id} Monster Shooter`}>
+        <div><strong>Monster Shooter <span lang="zh">怪兽闯关</span></strong><p>{unit.topics.length} levels, one original scenario per topic. <span lang="zh">每个考点一关原创情境题，共 {unit.topics.length} 关。</span></p></div>
+        <a class="button button-solid" href={playUnitPath(unit.id)}>Play Unit {unit.id} <span lang="zh">开始闯关</span></a>
+      </section>
       <div class="topic-grid">
         {unit.topics.map(topic => (
           <a class="topic-card" href={topicPath(topic.id)}>

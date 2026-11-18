@@ -1,36 +1,4 @@
-export type Bilingual = { en: string; zh: string };
-
-type Choice = { text: Bilingual; hint?: Bilingual };
-
-type Step = {
-  prompt: Bilingual;
-  choices: readonly [Choice, Choice, Choice];
-  correct: 0 | 1 | 2;
-  explanation: Bilingual;
-};
-
-type DataTable = {
-  caption: Bilingual;
-  columns: readonly Bilingual[];
-  rows: readonly (readonly Bilingual[])[];
-};
-
-export type Mission = {
-  id: string;
-  title: Bilingual;
-  topic: Bilingual;
-  scenario: Bilingual;
-  table?: DataTable;
-  figure?: 'ppc';
-  steps: readonly [Step, Step, Step];
-};
-
-const text = (en: string, zh = en): Bilingual => ({ en, zh });
-const answer = (en: string, zh: string): Choice => ({ text: text(en, zh) });
-const distractor = (en: string, zh: string, hintEn: string, hintZh: string): Choice => ({
-  text: text(en, zh),
-  hint: text(hintEn, hintZh),
-});
+import { answer, distractor, text, type Mission } from './game-types';
 
 export const unit1Missions: readonly Mission[] = [
   {
@@ -120,7 +88,10 @@ export const unit1Missions: readonly Mission[] = [
     title: text('Outpost at Capacity', '满负荷的前哨站'),
     topic: text('Production Possibilities Curve', '生产可能性曲线'),
     scenario: text('An emergency workshop can make radios and water filters. The curve shows its daily production frontier with current resources and technology.', '一家应急工坊可以生产收音机和净水器。曲线表示在现有资源和技术下的日产量边界。'),
-    figure: 'ppc',
+    figure: {
+      file: 'ppc-radios-filters.svg',
+      description: text('Radios on the horizontal axis, filters on the vertical axis. The frontier connects (0, 12), (2, 10), (4, 6) and (6, 0). The target point (4, 8) lies outside it.', '横轴为收音机，纵轴为净水器。生产可能性边界连接 (0, 12)、(2, 10)、(4, 6) 和 (6, 0)。目标点 (4, 8) 位于边界之外。'),
+    },
     table: {
       caption: text('Daily production on the frontier', '边界上的日产量组合'),
       columns: [text('Radios', '收音机'), text('Filters', '净水器')],

@@ -22,10 +22,10 @@ const { topic } = Astro.props;
         <h1>{topic.en}</h1>
         <p class="subtitle" lang="zh">{topic.zh}</p>
       </header>
-      {topic.unitId === 1 && <aside class="play-callout">
-        <p><strong>Market Missions <span lang="zh">市场挑战</span></strong></p>
+      <aside class="play-callout">
+        <p><strong>Monster Shooter <span lang="zh">怪兽闯关</span></strong></p>
         <a class="button button-solid" href={playPath(topic.id)}>Play this topic <span lang="zh">本节闯关</span></a>
-      </aside>}
+      </aside>
       <EntryList entries={entriesForTopic(topic.id)} />
     </div>
   </div>

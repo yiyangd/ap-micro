@@ -1,613 +1,375 @@
 ---
-import { unit1Missions } from '../data/unit1-game';
+import { shooterData } from '../data/shooter';
+import { sitePath as url } from '../lib/paths';
 
-const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
-const playUrl = `${base}play/`;
-const letters = ['A', 'B', 'C'];
+const encodedData = JSON.stringify(shooterData).replace(/</g, '\\u003c');
 ---
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#101c38" />
-    <meta name="description" content="Play six AP Microeconomics Unit 1 missions with original economic scenarios and step-by-step feedback." />
-    <title>Market Missions · AP Microeconomics</title>
-  </head>
-  <body data-chinese="true">
-    <a class="skip" href="#game-content">Skip to game</a>
-    <header class="topbar">
-      <div class="topbar-inner">
-        <a class="brand" href={base}><span class="brand-mark" aria-hidden="true">↗</span><span>AP Microeconomics</span></a>
-        <div class="top-actions">
-          <a href={base}>Question bank <span class="zh" lang="zh">题库</span></a>
-          <button id="language" class="quiet-button" type="button" aria-pressed="true">中文辅助</button>
-        </div>
-      </div>
-    </header>
-
-    <main id="game-content" tabindex="-1">
-      <section id="mission-map" aria-labelledby="map-title">
-        <div class="map-heading">
-          <div>
-            <p class="eyebrow">UNIT 1 / BASIC ECONOMIC CONCEPTS</p>
-            <h1 id="map-title" tabindex="-1">Market Missions</h1>
-            <p class="map-zh zh" lang="zh">市场挑战</p>
-            <p class="map-intro">Work through three decisions in each mission. A missed answer gives you a clue, and you can try again.</p>
-            <p class="map-intro zh" lang="zh">每关有三个决策。选错会获得提示，可以继续尝试。</p>
-          </div>
-          <p class="map-progress"><strong id="completed-count">0 / 6</strong> <span>missions cleared<span class="zh" lang="zh">已通关</span></span></p>
-        </div>
-        <div class="mission-grid">
-          {unit1Missions.map(mission => <a class="mission-card" href={`${playUrl}?topic=${mission.id}`} data-mission={mission.id}>
-            <span class="mission-card-head"><span class="map-id">{mission.id}</span><span class="map-status" data-status={mission.id} hidden>Cleared <span class="zh" lang="zh">通关</span></span></span>
-            <h2>{mission.title.en}</h2>
-            <span class="card-zh zh" lang="zh">{mission.title.zh}</span>
-            <span class="card-foot"><span>{mission.topic.en}<span class="zh" lang="zh">{mission.topic.zh}</span></span><span aria-hidden="true">↗</span></span>
-          </a>)}
-        </div>
-      </section>
-
-      <section id="mission-play" aria-labelledby="mission-title" hidden>
-        <div class="level-topline">
-          <button type="button" class="back-button" data-map>← Mission map <span class="zh" lang="zh">关卡地图</span></button>
-          <p class="level-meta" id="level-topic"></p>
-        </div>
-        <div class="level-heading">
-          <div>
-            <h1 id="mission-title" tabindex="-1"></h1>
-            <p id="mission-title-zh" class="level-zh zh" lang="zh"></p>
-          </div>
-          <ol class="steps" aria-label="Mission progress" id="progress-steps">
-            <li>1</li><li>2</li><li>3</li>
-          </ol>
-        </div>
-
-        <div class="play-grid">
-          <aside class="context" aria-labelledby="context-title">
-            <h2 id="context-title">Briefing <span class="zh" lang="zh">情境</span></h2>
-            <p id="scenario-en"></p>
-            <p id="scenario-zh" class="zh" lang="zh"></p>
-            <div id="mission-figure" hidden>
-              <canvas id="ppc-graph" width="640" height="430" role="img" aria-label="Radios on the horizontal axis and filters on the vertical axis. The production frontier connects (0,12), (2,10), (4,6) and (6,0). The proposed output is (4,8)."></canvas>
-            </div>
-            <div class="table-wrap" id="mission-data" hidden></div>
-          </aside>
-
-          <section class="arena" id="arena" data-outcome="ready" aria-labelledby="prompt-en">
-            <div class="arena-inner">
-              <div class="arena-head">
-                <p class="stage-id" id="stage-id"></p>
-                <span class="arena-icon" aria-hidden="true"><span></span></span>
-              </div>
-              <h2 id="prompt-en" tabindex="-1"></h2>
-              <p id="prompt-zh" class="prompt-zh zh" lang="zh"></p>
-              <div class="choice-grid" role="group" aria-label="Choose an answer">
-                {letters.map((letter, index) => <button class="choice" type="button" data-choice={index} aria-keyshortcuts={`${index + 1} ${letter}`}>
-                  <span class="target" aria-hidden="true">{letter}</span>
-                  <span class="choice-copy"><strong data-choice-en></strong><span class="zh" lang="zh" data-choice-zh></span></span>
-                  <span class="choice-key" aria-hidden="true">{index + 1}</span>
-                  <span class="choice-state" data-choice-state></span>
-                </button>)}
-              </div>
-              <div class="arena-footer">
-                <p class="keyboard-help">Focus a choice to use <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></p>
-                <button id="restart" class="back-button" type="button">Restart mission <span class="zh" lang="zh">重开</span></button>
-              </div>
-              <div class="feedback" id="feedback" hidden>
-                <strong id="feedback-title"></strong>
-                <p id="feedback-en"></p>
-                <p id="feedback-zh" class="zh" lang="zh"></p>
-                <button id="continue" type="button" class="primary" hidden><span id="continue-en"></span><span id="continue-zh" class="zh" lang="zh"></span><span aria-hidden="true">→</span></button>
-              </div>
-              <p id="announcement" class="visually-hidden" role="status" aria-atomic="true"></p>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section class="recap" id="mission-recap" aria-labelledby="recap-title" hidden>
-        <button type="button" class="back-button" data-map>← Mission map <span class="zh" lang="zh">关卡地图</span></button>
-        <div class="recap-head">
-          <p class="eyebrow">MISSION COMPLETE <span class="zh" lang="zh">任务完成</span></p>
-          <h1 id="recap-title" tabindex="-1"></h1>
-          <p id="recap-title-zh" class="level-zh zh" lang="zh"></p>
-          <p id="recap-score"></p>
-        </div>
-        <ol id="recap-list" class="recap-list"></ol>
-        <div class="recap-actions">
-          <button id="next-mission" class="primary" type="button">Next mission <span class="zh" lang="zh">下一关</span><span aria-hidden="true">→</span></button>
-          <button id="replay" class="quiet-button" type="button">Play again <span class="zh" lang="zh">再玩一次</span></button>
-          <a id="topic-link" class="quiet-button" href={`${base}topics/1.1/`}>Review this topic <span class="zh" lang="zh">复习本节</span></a>
-        </div>
-      </section>
-
-      <noscript><p>Enable JavaScript to play the missions. <a href={base}>Open the question bank.</a></p></noscript>
-    </main>
-  </body>
-</html>
-
-<script>
-  import { unit1Missions, type Bilingual } from '../data/unit1-game';
-
-  const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
-  const get = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
-  const set = (id: string, value: string) => { get(id).textContent = value; };
-  const map = get('mission-map');
-  const play = get('mission-play');
-  const recap = get('mission-recap');
-  const arena = get('arena');
-  const languageButton = get<HTMLButtonElement>('language');
-  const continueButton = get<HTMLButtonElement>('continue');
-  const choices = Array.from(document.querySelectorAll<HTMLButtonElement>('.choice'));
-  const progress = Array.from(get('progress-steps').children);
-  const missionLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-mission]'));
-  const clearBadges = Array.from(document.querySelectorAll<HTMLElement>('[data-status]'));
-  const bestKey = 'ap-micro.market-missions.completed.v1';
-  const languageKey = 'ap-micro.market-missions.chinese.v1';
-
-  function readLocal(key: string) {
-    try { return localStorage.getItem(key); } catch { return null; }
-  }
-
-  function writeLocal(key: string, value: string) {
-    try { localStorage.setItem(key, value); } catch { /* The mission stays playable without storage. */ }
-  }
-
-  const cleared = new Set((readLocal(bestKey) ?? '').split(',').filter(id => unit1Missions.some(mission => mission.id === id)));
-  let showChinese = readLocal(languageKey) !== 'false';
-  let missionIndex = 0;
-  let stepIndex = 0;
-  let mistakes = new Set<number>();
-  let solved = false;
-  let stepMistakes: number[] = [];
-  let currentView: 'map' | 'play' | 'recap' = 'map';
-
-  function applyChinese() {
-    document.body.dataset.chinese = String(showChinese);
-    languageButton.setAttribute('aria-pressed', String(showChinese));
-  }
-
-  function display(view: typeof currentView, heading?: string) {
-    currentView = view;
-    map.hidden = view !== 'map';
-    play.hidden = view !== 'play';
-    recap.hidden = view !== 'recap';
-    if (heading) {
-      get(heading).focus({ preventScroll: true });
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }
-
-  function setLocation(id?: string) {
-    const url = new URL(window.location.href);
-    if (id) {
-      url.searchParams.set('topic', id);
-    } else {
-      url.searchParams.delete('topic');
-    }
-    window.history.replaceState(null, '', url);
-  }
-
-  function updateMap() {
-    set('completed-count', `${cleared.size} / ${unit1Missions.length}`);
-    clearBadges.forEach(badge => { badge.hidden = !cleared.has(badge.dataset.status ?? ''); });
-  }
-
-  function labeledCopy(parent: HTMLElement, value: Bilingual) {
-    parent.append(document.createTextNode(value.en));
-    if (value.en !== value.zh) {
-      const chinese = document.createElement('span');
-      chinese.className = 'zh localized';
-      chinese.lang = 'zh';
-      chinese.textContent = value.zh;
-      parent.append(chinese);
-    }
-  }
-
-  function renderBriefing() {
-    const mission = unit1Missions[missionIndex];
-    const topic = get('level-topic');
-    topic.replaceChildren();
-    labeledCopy(topic, { en: `${mission.id} / ${mission.topic.en}`, zh: mission.topic.zh });
-    set('scenario-en', mission.scenario.en);
-    set('scenario-zh', mission.scenario.zh);
-    get('mission-figure').hidden = mission.figure !== 'ppc';
-    if (mission.figure === 'ppc') drawFrontier();
-
-    const host = get('mission-data');
-    const data = mission.table;
-    host.hidden = !data;
-    host.replaceChildren();
-    if (!data) return;
-    const table = document.createElement('table');
-    labeledCopy(table.createCaption(), data.caption);
-    const header = table.createTHead().insertRow();
-    data.columns.forEach(label => {
-      const cell = document.createElement('th');
-      cell.scope = 'col';
-      labeledCopy(cell, label);
-      header.append(cell);
-    });
-    const body = table.createTBody();
-    data.rows.forEach(values => {
-      const row = body.insertRow();
-      values.forEach(value => labeledCopy(row.insertCell(), value));
-    });
-    host.append(table);
-  }
-
-  function drawFrontier() {
-    const canvas = get<HTMLCanvasElement>('ppc-graph');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const left = 72;
-    const bottom = 330;
-    const x = (radios: number) => left + radios * 75;
-    const y = (filters: number) => bottom - filters * 23;
-    function stroke(points: readonly (readonly [number, number])[], color: string, width: number) {
-      ctx!.beginPath();
-      points.forEach(([a, b], index) => { if (index) ctx!.lineTo(a, b); else ctx!.moveTo(a, b); });
-      ctx!.strokeStyle = color;
-      ctx!.lineWidth = width;
-      ctx!.stroke();
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillStyle = '#d4e0f3';
-    ctx.fillText('Filters', left, 37);
-    for (const filters of [2, 4, 6, 8, 10, 12]) {
-      stroke([[left, y(filters)], [x(6.6), y(filters)]], '#324668', 2);
-      ctx.textAlign = 'right';
-      ctx.fillText(String(filters), left - 12, y(filters) + 8);
-    }
-    for (const radios of [0, 2, 4, 6]) {
-      ctx.textAlign = 'center';
-      ctx.fillText(String(radios), x(radios), bottom + 33);
-    }
-    ctx.fillText('Radios', x(3), 411);
-    stroke([[left, y(12.4)], [left, bottom], [x(6.6), bottom]], '#c4d0e3', 3);
-    const frontier = [[0, 12], [2, 10], [4, 6], [6, 0]] as const;
-    stroke(frontier.map(([a, b]) => [x(a), y(b)]), '#c8f582', 5);
-    frontier.forEach(([a, b]) => {
-      ctx.beginPath();
-      ctx.arc(x(a), y(b), 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#c8f582';
-      ctx.fill();
-    });
-    ctx.setLineDash([8, 8]);
-    stroke([[left, y(8)], [x(4), y(8)], [x(4), bottom]], '#8ac8ff', 2);
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.arc(x(4), y(8), 9, 0, Math.PI * 2);
-    ctx.fillStyle = '#96cfff';
-    ctx.fill();
-    ctx.textAlign = 'left';
-    ctx.fillText('(4, 8)', x(4) + 13, y(8) - 7);
-  }
-
-  function showDecision(focus = false) {
-    const { steps } = unit1Missions[missionIndex];
-    const step = steps[stepIndex];
-    mistakes = new Set();
-    solved = false;
-    arena.dataset.outcome = 'ready';
-    get('feedback').hidden = true;
-    continueButton.hidden = true;
-    set('announcement', '');
-    set('stage-id', `DECISION ${stepIndex + 1} / ${steps.length}`);
-    set('prompt-en', step.prompt.en);
-    set('prompt-zh', step.prompt.zh);
-    progress.forEach((item, index) => {
-      item.classList.toggle('done', index < stepIndex);
-      if (index === stepIndex) item.setAttribute('aria-current', 'step');
-      else item.removeAttribute('aria-current');
-      item.setAttribute('aria-label', `Decision ${index + 1}${index < stepIndex ? ', complete' : ''}`);
-    });
-    choices.forEach((choice, index) => {
-      choice.querySelector('[data-choice-en]')!.textContent = step.choices[index].text.en;
-      choice.querySelector('[data-choice-zh]')!.textContent = step.choices[index].text.zh;
-      choice.querySelector('[data-choice-state]')!.textContent = '';
-      choice.disabled = false;
-      choice.removeAttribute('data-answer');
-      choice.removeAttribute('aria-disabled');
-    });
-    if (focus) get('prompt-en').focus();
-  }
-
-  function startMission(index: number, updateLocation = true) {
-    const mission = unit1Missions[index];
-    missionIndex = index;
-    stepIndex = 0;
-    stepMistakes = [];
-    set('mission-title', mission.title.en);
-    set('mission-title-zh', mission.title.zh);
-    renderBriefing();
-    showDecision();
-    if (updateLocation) setLocation(mission.id);
-    display('play', 'mission-title');
-  }
-
-  function submitChoice(index: number) {
-    if (solved || mistakes.has(index)) return;
-    const { steps } = unit1Missions[missionIndex];
-    const step = steps[stepIndex];
-    const correct = index === step.correct;
-    const choice = choices[index];
-    const result = correct ? step.explanation : step.choices[index].hint!;
-    const feedbackTitle = correct ? 'Target secured' : 'Try a different answer';
-    const feedbackTitleZh = correct ? '成功命中' : '换一个答案试试';
-    const feedbackHeading = get('feedback-title');
-    feedbackHeading.replaceChildren();
-    labeledCopy(feedbackHeading, { en: feedbackTitle, zh: feedbackTitleZh });
-    choice.dataset.answer = correct ? 'correct' : 'miss';
-    choice.querySelector('[data-choice-state]')!.textContent = correct ? 'Correct' : 'Tried';
-    arena.dataset.outcome = correct ? 'correct' : 'miss';
-    set('feedback-en', result.en);
-    set('feedback-zh', result.zh);
-    get('feedback').hidden = false;
-    set('announcement', showChinese ? `${feedbackTitle}. ${result.en} ${feedbackTitleZh}。${result.zh}` : `${feedbackTitle}. ${result.en}`);
-
-    if (!correct) {
-      mistakes.add(index);
-      choice.setAttribute('aria-disabled', 'true');
-      return;
-    }
-
-    solved = true;
-    stepMistakes.push(mistakes.size);
-    choices.forEach(button => { button.disabled = true; });
-    const finishing = stepIndex === steps.length - 1;
-    set('continue-en', finishing ? 'View recap' : 'Next decision');
-    set('continue-zh', finishing ? '查看复盘' : '下一步');
-    continueButton.hidden = false;
-    continueButton.focus();
-  }
-
-  function completeMission() {
-    const mission = unit1Missions[missionIndex];
-    cleared.add(mission.id);
-    writeLocal(bestKey, [...cleared].join(','));
-    updateMap();
-    set('recap-title', mission.title.en);
-    set('recap-title-zh', mission.title.zh);
-    const firstTry = stepMistakes.filter(count => count === 0).length;
-    const score = get('recap-score');
-    score.replaceChildren();
-    labeledCopy(score, { en: `${firstTry} of ${mission.steps.length} decisions correct on the first try.`, zh: `${mission.steps.length} 步中有 ${firstTry} 步一次答对。` });
-    const list = get('recap-list');
-    list.replaceChildren();
-    mission.steps.forEach((step, index) => {
-      const item = document.createElement('li');
-      const heading = document.createElement('h2');
-      const takeaway = document.createElement('p');
-      const attempts = document.createElement('p');
-      const count = stepMistakes[index];
-      attempts.className = 'attempts';
-      labeledCopy(heading, step.prompt);
-      labeledCopy(takeaway, step.explanation);
-      labeledCopy(attempts, count === 0 ? { en: 'First try', zh: '一次答对' } : { en: `${count + 1} attempts`, zh: `共尝试 ${count + 1} 次` });
-      item.append(heading, takeaway, attempts);
-      list.append(item);
-    });
-    get<HTMLAnchorElement>('topic-link').href = `${base}topics/${mission.id}/`;
-    get('next-mission').hidden = missionIndex >= unit1Missions.length - 1;
-    display('recap', 'recap-title');
-  }
-
-  languageButton.addEventListener('click', () => {
-    showChinese = !showChinese;
-    applyChinese();
-    writeLocal(languageKey, String(showChinese));
-  });
-  missionLinks.forEach((link, index) => link.addEventListener('click', event => {
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    startMission(index);
-  }));
-  document.querySelectorAll('[data-map]').forEach(button => button.addEventListener('click', () => {
-    setLocation();
-    display('map', 'map-title');
-  }));
-  choices.forEach((button, index) => button.addEventListener('click', () => submitChoice(index)));
-  continueButton.addEventListener('click', () => {
-    if (!solved) return;
-    if (stepIndex === unit1Missions[missionIndex].steps.length - 1) {
-      completeMission();
-      return;
-    }
-    stepIndex += 1;
-    showDecision(true);
-  });
-  for (const id of ['restart', 'replay']) {
-    get(id).addEventListener('click', () => startMission(missionIndex));
-  }
-  get('next-mission').addEventListener('click', () => startMission(missionIndex + 1));
-  document.addEventListener('keydown', event => {
-    if (currentView !== 'play' || solved || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (!(document.activeElement instanceof HTMLButtonElement) || !choices.includes(document.activeElement)) return;
-    const key = event.key.toUpperCase();
-    const index = /^[123]$/.test(key) ? Number(key) - 1 : ['A', 'B', 'C'].indexOf(key);
-    if (index < 0) return;
-    event.preventDefault();
-    submitChoice(index);
-  });
-  applyChinese();
-  updateMap();
-  const requested = new URLSearchParams(window.location.search).get('topic');
-  const requestedIndex = unit1Missions.findIndex(mission => mission.id === requested);
-  if (requestedIndex >= 0) startMission(requestedIndex, false);
-</script>
-
-<style is:global>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monster Shooter · AP Microeconomics</title>
+<meta name="description" content="Clear 36 AP Microeconomics topics, one monster per topic. Original scenarios, step-by-step hints, English with optional Chinese support.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%234ade80'/%3E%3Ccircle cx='32' cy='27' r='11' fill='%23fff'/%3E%3Ccircle cx='32' cy='29' r='5' fill='%230f172a'/%3E%3C/svg%3E">
+<style is:inline>
   :root {
-    color-scheme: dark;
-    --bg: #0b1428;
-    --card: #15243f;
-    --card-raised: #1b2d50;
-    --line: #344a6e;
-    --ink: #edf4ff;
-    --muted: #b2c4df;
-    --blue: #9bcaff;
-    --green: #c8f582;
-    --red: #ffafb0;
-    --mono: ui-monospace, Consolas, monospace;
-    font-family: 'Inter', 'Segoe UI', system-ui, 'Microsoft YaHei', sans-serif;
+    --bg: #060a17; --card: #121b36; --line: #24304f;
+    --ink: #e8eeff; --muted: #9aa8c7;
+    --a: #38bdf8; --b: #fbbf24; --c: #f472b6;
+    --ok: #34d399; --bad: #f87171; --gold: #fde047;
+    --font: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   }
-  *, *::before, *::after { box-sizing: border-box; }
+  * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(ellipse at 68% 4%, #193562, transparent 61rem), var(--bg); }
-  body[data-chinese='false'] .zh { display: none !important; }
-  a { color: inherit; text-decoration: none; }
-  button { color: inherit; font: inherit; cursor: pointer; }
-  h1, h2, p { margin: 0; }
-  :focus-visible { outline: 3px solid var(--green); outline-offset: 4px; }
-  h1:focus, h2:focus, main:focus { outline: none; }
-  .visually-hidden, .skip:not(:focus) { position: absolute; block-size: 1px; inline-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .skip:focus { position: fixed; z-index: 2; inset: 0 auto auto 0; background: var(--green); color: var(--bg); padding: .8rem 1rem; }
-  .localized { display: block; margin-top: .18rem; color: var(--muted); font-weight: 400; }
-  .topbar { border-bottom: 1px solid var(--line); background: #0b1428e6; }
-  .topbar-inner { margin: auto; padding: .72rem 0; width: min(1140px, calc(100% - 3rem)); display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
-  .brand, .top-actions { display: flex; align-items: center; gap: .85rem; }
-  .brand { font-weight: 750; letter-spacing: -.025em; }
-  .brand-mark { display: grid; place-items: center; flex: none; width: 35px; height: 35px; border-radius: 9px; background: var(--green); color: #182c22; font-size: 1.3rem; }
-  .top-actions { color: var(--muted); font-size: .86rem; }
-  .top-actions a { display: flex; flex-wrap: wrap; justify-content: end; gap: .2rem .35rem; }
-  .top-actions a:hover, .back-button:hover { color: var(--ink); }
-  .quiet-button, .primary { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .55rem .85rem; border: 1px solid var(--line); border-radius: .55rem; background: transparent; font-size: .87rem; font-weight: 650; min-height: 44px; }
-  .quiet-button:hover, .quiet-button[aria-pressed='true'] { border-color: var(--blue); color: var(--ink); background: #28436c; }
-  main { margin-inline: auto; width: min(1140px, calc(100% - 3rem)); padding-block: clamp(2.2rem, 6vw, 5rem) 4rem; }
-  .map-heading { display: flex; justify-content: space-between; align-items: end; gap: 1.5rem; margin-bottom: 2rem; }
-  .eyebrow, .stage-id, .level-meta, .map-id { font-family: var(--mono); font-weight: 650; letter-spacing: .09em; text-transform: uppercase; }
-  .eyebrow { margin-bottom: .65rem; color: var(--green); font-size: .8rem; }
-  .eyebrow .zh { letter-spacing: normal; margin-left: .45rem; }
-  h1 { font-size: clamp(2rem, 5.25vw, 4.65rem); font-weight: 750; line-height: 1.02; letter-spacing: -.065em; }
-  .map-zh { margin-top: .55rem; color: var(--blue); font-size: clamp(1rem, 2.3vw, 1.6rem); font-weight: 620; }
-  .map-intro { margin-top: .9rem; color: var(--muted); font-size: .97rem; line-height: 1.55; }
-  .map-intro.zh { margin-top: .15rem; }
-  .map-progress { flex: none; display: flex; align-items: center; gap: .65rem; padding: .7rem .85rem; border: 1px solid var(--line); border-radius: .7rem; background: var(--card); color: var(--muted); font-size: .8rem; }
-  .map-progress strong { color: var(--green); font: 750 1.2rem var(--mono); }
-  .map-progress span .zh { display: block; margin-top: .1rem; }
-  .mission-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; }
-  .mission-card { display: flex; min-width: 0; flex-direction: column; min-height: 12rem; padding: 1.1rem; border: 1px solid var(--line); border-radius: .88rem; background: linear-gradient(150deg, #20355a, var(--card) 75%); transition: border-color .18s, background .18s, transform .18s; }
-  .mission-card:hover { border-color: var(--blue); background: #223c68; transform: translateY(-2px); }
-  .mission-card-head, .card-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-  .map-id { color: var(--green); font-size: .9rem; }
-  .map-status { color: var(--green); font-size: .7rem; padding: .15rem .45rem; border: 1px solid #6fa17e; border-radius: .3rem; }
-  .mission-card h2 { margin-top: .7rem; font-size: 1.22rem; letter-spacing: -.025em; }
-  .card-zh { color: var(--muted); font-size: .84rem; margin-top: .15rem; }
-  .card-foot { align-items: end; margin-top: auto; padding-top: .8rem; font-size: .77rem; color: var(--blue); }
-  .card-foot .zh { display: block; color: var(--muted); margin-top: .15rem; }
-  .card-foot > span:last-child { font-size: 1rem; }
-  .level-topline, .level-heading { display: flex; justify-content: space-between; align-items: center; gap: .7rem; }
-  .level-topline { align-items: start; }
-  .level-heading { margin: 1.05rem 0 1.45rem; }
-  .level-heading h1, .recap h1 { font-size: clamp(1.9rem, 5vw, 3.7rem); }
-  .level-zh { color: var(--blue); font-size: 1.07rem; margin-top: .45rem; }
-  .level-meta { color: var(--blue); font-size: .75rem; text-align: right; margin-top: .65rem; line-height: 1.35; }
-  .level-meta .localized { letter-spacing: normal; }
-  .back-button { padding: .35rem .1rem; min-height: 44px; border: 0; background: transparent; color: var(--blue); font-size: .83rem; text-align: left; }
-  .back-button .zh { margin-left: .16rem; }
-  .steps { flex: none; display: flex; gap: .45rem; padding: 0; margin: 0; list-style: none; }
-  .steps li { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--card); width: 2.06rem; height: 2.06rem; color: var(--muted); font: 700 .85rem var(--mono); }
-  .steps [aria-current] { border-color: var(--blue); color: var(--blue); box-shadow: 0 0 0 3px #9bcaff21; }
-  .steps .done { background: var(--green); border-color: var(--green); color: var(--bg); }
-  .play-grid { display: grid; grid-template-columns: minmax(250px, .85fr) minmax(0, 1.65fr); gap: 1rem; align-items: start; }
-  .context, .arena, .recap-list li { border: 1px solid var(--line); border-radius: .85rem; }
-  .context { background: var(--card); padding: 1.15rem; }
-  .context h2 { font-size: .92rem; margin-bottom: .65rem; }
-  .context h2 .zh { margin-left: .3rem; color: var(--blue); font-weight: 500; }
-  .context > p { font-size: .9rem; line-height: 1.55; }
-  .context > p.zh { margin-top: .43rem; color: var(--muted); }
-  .table-wrap { margin-top: .85rem; overflow: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: .76rem; }
-  table caption { padding: 0 0 .4rem; color: var(--muted); text-align: left; }
-  table td, table th { padding: .43rem .25rem; border-bottom: 1px solid var(--line); text-align: left; }
-  table th { color: var(--blue); }
-  #ppc-graph { display: block; width: 100%; margin: .75rem 0; border: 1px solid var(--line); border-radius: .5rem; background: #0a162c; }
-  .arena { min-width: 0; background-image: radial-gradient(ellipse at 90% 10%, #274e7f80, transparent 68%), repeating-linear-gradient(0deg, transparent 0 27px, #8cb4f010 28px), repeating-linear-gradient(90deg, transparent 0 27px, #8cb4f010 28px); background-color: #111f3b; --signal: var(--blue); }
-  .arena[data-outcome='correct'] { --signal: var(--green); }
-  .arena[data-outcome='miss'] { --signal: var(--red); }
-  .arena-inner { padding: clamp(.9rem, 3vw, 1.5rem); }
-  .arena-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .45rem; }
-  .stage-id { font-size: .78rem; color: var(--signal); }
-  .arena-icon { display: grid; place-items: center; flex: none; width: 62px; height: 38px; color: var(--signal); }
-  .arena-icon > span { position: relative; display: block; width: 20px; height: 20px; border: 1px solid currentColor; transform: rotate(45deg); border-radius: 4px; box-shadow: 0 0 15px currentColor; }
-  .arena-icon > span::before, .arena-icon > span::after { content: ''; position: absolute; border: 1px solid currentColor; border-radius: 4px; inset: -6px; opacity: .5; }
-  .arena-icon > span::after { inset: 5px; border-radius: 1px; opacity: 1; background: currentColor; }
-  .arena[data-outcome='correct'] .arena-icon > span { animation: secured .38s ease-out; }
-  @keyframes secured { 50% { transform: rotate(45deg) scale(1.35); } }
-  .arena h2 { max-width: 35ch; font-size: clamp(1.23rem, 2.4vw, 1.76rem); line-height: 1.24; letter-spacing: -.025em; }
-  .prompt-zh { color: var(--muted); margin-top: .4rem; line-height: 1.4; font-size: .93rem; }
-  .choice-grid { display: grid; gap: .55rem; margin-top: 1.15rem; }
-  .choice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .65rem; align-items: center; width: 100%; padding: .7rem .75rem; min-height: 56px; border: 1px solid var(--line); border-radius: .66rem; background: #132347; color: var(--ink); text-align: left; }
-  .choice:not(:disabled):not([aria-disabled]):hover { border-color: var(--blue); background: #26446e; }
-  .choice[aria-disabled], .choice:disabled { cursor: default; }
-  .choice[data-answer='miss'] { border-color: #966373; }
-  .choice[data-answer='correct'] { border-color: var(--green); background: #203b3c; }
-  .choice-copy { font-size: .9rem; line-height: 1.38; }
-  .choice-copy .zh { display: block; margin-top: .12rem; color: var(--muted); font-size: .81rem; }
-  .target { display: grid; place-items: center; width: 2.05rem; height: 2.05rem; border: 1px solid #709cd0; border-radius: 50%; color: var(--blue); font: 750 .88rem var(--mono); }
-  [data-answer='miss'] .target { color: var(--red); border-color: #966373; }
-  [data-answer='correct'] .target { color: #12271c; background: var(--green); border-color: var(--green); }
-  .choice-key, kbd { color: var(--muted); border: 1px solid var(--line); min-width: 1.15rem; padding: .05rem .22rem; border-radius: .25rem; font: 600 .68rem var(--mono); text-align: center; }
-  .choice-state { display: none; }
-  .choice[data-answer] .choice-key { display: none; }
-  .choice[data-answer] .choice-state { display: block; color: var(--red); font-size: .71rem; }
-  .choice[data-answer='correct'] .choice-state { color: var(--green); }
-  .arena-footer { display: flex; justify-content: space-between; align-items: center; gap: .45rem; }
-  .keyboard-help { color: var(--muted); font-size: .75rem; }
-  .keyboard-help kbd { display: inline-block; }
-  .feedback { padding: .8rem .95rem; border-inline-start: 3px solid var(--signal); border-radius: .4rem; background: #0a152a; margin-top: .23rem; }
-  .feedback strong { display: block; color: var(--signal); font-size: .87rem; }
-  .feedback p { margin-top: .25rem; font-size: .88rem; line-height: 1.45; }
-  .feedback p.zh { color: var(--muted); }
-  .feedback .localized { display: inline; margin-left: .35rem; color: inherit; }
-  .primary { background: var(--green); color: #142419; border-color: var(--green); }
-  .primary:hover { background: #e0f9b7; }
-  .feedback .primary { margin-top: .65rem; }
-  .recap { max-width: 780px; margin-inline: auto; }
-  .recap-head { margin: 1.2rem 0 1.4rem; }
-  #recap-score { margin-top: .7rem; color: var(--blue); }
-  .recap-list { display: grid; gap: .7rem; margin: 0; padding: 0; list-style: none; counter-reset: decision; }
-  .recap-list li { counter-increment: decision; position: relative; background: var(--card); padding: .85rem .9rem .85rem 3.1rem; }
-  .recap-list li::before { content: counter(decision); position: absolute; top: .85rem; left: .8rem; width: 1.65rem; height: 1.65rem; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: var(--bg); font: 700 .8rem var(--mono); }
-  .recap-list h2 { font-size: .98rem; line-height: 1.4; }
-  .recap-list p { margin-top: .32rem; font-size: .87rem; line-height: 1.45; }
-  .recap-list .attempts { color: var(--blue); font-size: .74rem; }
-  .attempts .localized { display: inline; margin-left: .25rem; }
-  .recap-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
-  @media (max-width: 800px) {
-    .mission-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .play-grid { grid-template-columns: minmax(0, 1fr); }
-    #mission-figure { width: min(100%, 390px); }
+  html, body { height: 100%; }
+  body {
+    margin: 0; color: var(--ink); font-family: var(--font);
+    background: radial-gradient(1500px 900px at 50% 30%, #0c1634, var(--bg) 70%) var(--bg);
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
   }
-  @media (max-width: 480px) {
-    .topbar-inner, main { width: calc(100% - 1.4rem); }
-    .topbar-inner, .brand, .top-actions { gap: .45rem; }
-    .top-actions, .top-actions .quiet-button { font-size: .73rem; }
-    .top-actions .quiet-button { padding-inline: .45rem; }
-    .brand { font-size: .87rem; }
-    .brand-mark { width: 28px; height: 28px; }
-    .map-heading { flex-direction: column; align-items: start; gap: .75rem; margin-bottom: .9rem; }
-    .mission-card { min-height: 10rem; padding: .7rem; }
-    .mission-card h2 { font-size: 1rem; }
-    .mission-card .card-zh { font-size: .75rem; }
-    .mission-grid { gap: .52rem; }
-    .level-topline { gap: .4rem; }
-    .level-meta { max-width: 50%; }
-    .context { padding: .85rem; }
-    .choice { padding: .55rem; column-gap: .45rem; }
-    .arena-footer { align-items: end; }
-    .steps { gap: .3rem; }
-    .steps li { width: 1.6rem; height: 1.6rem; }
+  button { font: inherit; color: inherit; }
+  a { color: var(--a); }
+
+  /* Chinese help lines: always in the markup, shown only when the toggle is on */
+  .zh { display: none; }
+  body.show-zh .zh { display: block; margin-top: .15em; color: var(--muted); font-size: .86em; font-weight: 400; line-height: 1.45; }
+  body.show-zh .zh-inline { display: inline; margin: 0; font-size: 1em; color: inherit; font-weight: inherit; }
+
+  .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .8em; line-height: 1.08; margin: 0 .14em; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 .28em .04em; }
+  .frac > span:last-child { padding: .04em .28em 0; }
+
+  kbd { display: inline-block; min-width: 1.7em; padding: 1px 6px; margin: 0 1px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--card); color: var(--ink); font: 600 .92em var(--font); text-align: center; }
+  .chip { border: 1px solid var(--line); background: rgba(18, 27, 54, .9); border-radius: 999px; padding: .42em .95em; font-size: 13px; line-height: 1.2; cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--muted); }
+  .chip[aria-pressed="true"] { border-color: var(--a); color: var(--a); }
+  .chip:focus-visible, .btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+  /* ------------------------------------------------------------ stage
+     One screen, read top to bottom: HUD, question card, monster with one answer per part, player.
+     --u is the canvas scale, set from game.js, so the card grows and shrinks with the scene. */
+  #app { height: 100vh; height: 100dvh; }
+  .stage-wrap { height: 100%; display: grid; place-items: center; padding: 14px; overflow: hidden; }
+  .stage { position: relative; --u: 1; }
+  .scene { position: relative; border-radius: 18px; overflow: hidden; background: #0b1230; box-shadow: 0 0 0 1px var(--line), 0 24px 60px rgba(0, 0, 0, .5); }
+  #arena { display: block; width: 100%; height: 100%; touch-action: none; }
+  #app[data-screen="play"] #arena { cursor: none; }
+
+  .corner { position: absolute; z-index: 4; right: calc(14px * var(--u)); bottom: calc(9px * var(--u)); display: flex; align-items: center; gap: 8px; font-size: clamp(11px, calc(12px * var(--u)), 14px); }
+  .corner .chip { font-size: 1em; }
+  #app[data-layout="stacked"] .corner { position: static; order: 2; flex: none; align-self: flex-end; }
+  #app[data-screen="intro"] .corner, #app[data-screen="summary"] .corner { visibility: hidden; }
+  /* controls reminder beside the card; only when the scene is wide enough to have room there */
+  .legend { position: absolute; z-index: 2; left: calc(16px * var(--u)); top: calc(62px * var(--u)); display: grid; grid-template-columns: auto auto; gap: .45em .8em; align-items: center; color: var(--muted); font-size: clamp(10.5px, calc(12px * var(--u)), 14px); pointer-events: none; }
+  .legend span:nth-child(odd) { color: var(--ink); opacity: .75; font-weight: 600; }
+  .stage:not([data-wide]) .legend { visibility: hidden; }
+
+  .history-slot { position: absolute; z-index: 2; top: calc(62px * var(--u)); right: calc(16px * var(--u)); width: clamp(144px, calc(134px * var(--u)), 205px); visibility: hidden; }
+  #app[data-screen="play"] .stage[data-side-history] .history-slot { visibility: visible; }
+  .history-slot .run-history { padding: .65em .8em; border: 1px solid var(--line); border-radius: 12px; background: rgba(9, 15, 36, .92); font-size: clamp(12px, calc(12px * var(--u)), 16px); }
+  .history-slot .history-list { max-height: calc(190px * var(--u)); }
+  .run-history h2 { margin: 0 0 .4em; font-size: 1em; line-height: 1.35; }
+  .history-list { margin: 0; padding: 0 .15em; list-style: none; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; font-variant-numeric: tabular-nums; }
+  .history-list:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; border-radius: 4px; }
+  .history-list li { display: flex; align-items: center; justify-content: space-between; gap: .6em; padding: .35em 0; white-space: nowrap; }
+  .history-list li + li { border-top: 1px solid var(--line); }
+  .history-list li[aria-current="step"] .history-question { color: var(--a); font-weight: 700; }
+  .history-stars { color: var(--gold); letter-spacing: .08em; }
+  .history-stars .off { color: #73839d; }
+  #app:not([data-screen="play"]) #history-toggle, .stage[data-side-history] #history-toggle { display: none; }
+  #app[data-layout="overlay"] #history-toggle { position: absolute; right: 0; bottom: calc(100% + 8px); }
+
+  /* ------------------------------------------------------------ question card */
+  .qcard { font-size: clamp(13.5px, calc(16px * var(--u)), 21px); line-height: 1.45; -webkit-user-select: text; user-select: text; scrollbar-width: thin; }
+  .qc-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .2em 1.2em; color: var(--muted); font-size: .68em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .q-type { color: var(--gold); }
+  .q-stem { margin-top: .15em; font-size: 1.16em; line-height: 1.4; text-wrap: balance; }
+  .q-stem.is-long { font-size: 1em; line-height: 1.45; }
+  .q-solved { display: flex; flex-wrap: wrap; justify-content: center; gap: .1em 1.2em; margin: .3em 0 0; padding: 0; list-style: none; color: #a7f3d0; font-size: .8em; }
+  .q-solved li::before { content: "✓ "; color: var(--ok); font-weight: 800; }
+  body.show-zh .q-solved .zh { display: inline; margin: 0; }
+  body.show-zh .q-solved .zh::before { content: " · "; }
+  .q-now { margin-top: .45em; padding-top: .45em; border-top: 1px solid rgba(148, 163, 184, .24); }
+  .q-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: .3em .7em; }
+  .q-badge { flex: none; padding: .18em .85em; border-radius: 999px; background: var(--gold); color: #0b1020; font-size: .68em; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+  .q-prompt { margin: 0; font-size: 1.28em; font-weight: 700; line-height: 1.3; text-wrap: balance; }
+  .q-feedback { margin-top: .5em; padding: .4em .9em; border: 1px solid var(--line); border-radius: 10px; font-size: .9em; }
+  .q-feedback > b { margin-right: .7em; font-size: .78em; letter-spacing: .08em; text-transform: uppercase; }
+  .q-feedback[data-kind="wrong"] { border-color: rgba(248, 113, 113, .55); background: rgba(248, 113, 113, .13); }
+  .q-feedback[data-kind="wrong"] > b { color: var(--bad); }
+  .q-feedback[data-kind="right"] { border-color: rgba(52, 211, 153, .45); background: rgba(52, 211, 153, .11); }
+  .q-feedback[data-kind="right"] > b { color: var(--ok); }
+
+  /* wide screens: the card floats over the sky at the top of the scene; answers are on the monster's parts */
+  #app[data-layout="overlay"] .qcard {
+    display: flex; flex-direction: column;
+    position: absolute; z-index: 3; left: 50%; top: calc(54px * var(--u)); transform: translateX(-50%);
+    width: min(calc(900px * var(--u)), calc(100% - 28px)); max-height: calc(226px * var(--u)); overflow: hidden;
+    padding: .55em 1.2em .7em; border: 1px solid rgba(125, 211, 252, .32); border-radius: 16px;
+    background: rgba(9, 15, 36, .9); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); text-align: center;
   }
-  @media (pointer: coarse) {
-    .keyboard-help, .choice-key { display: none; }
-    .arena-footer { justify-content: end; }
+  #app[data-layout="overlay"] .q-options { display: none; }
+  #app[data-layout="overlay"] .q-reference { min-height: 0; overflow: auto; scrollbar-width: thin; }
+  #app[data-layout="overlay"] .qcard[data-reference] .q-reference { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9.5em, 30%); align-items: start; gap: .85em; }
+  #app[data-layout="overlay"] .qcard[data-reference] .q-copy { text-align: left; }
+  #app[data-layout="overlay"] .qcard[data-reference] .qc-meta, #app[data-layout="overlay"] .qcard[data-reference] .q-solved { justify-content: flex-start; }
+  #app[data-layout="overlay"] .q-now { flex: none; }
+  #app[data-layout="overlay"] .q-feedback { min-height: 0; max-height: calc(54px * var(--u)); overflow-y: auto; }
+
+  /* narrow screens: the card sits above the scene and also lists the answers, because canvas text gets too small */
+  #app[data-layout="stacked"] .stage { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; height: 100%; }
+  #app[data-layout="stacked"] .scene { border-radius: 12px; }
+  #app[data-layout="stacked"] .qcard { order: -1; flex: none; width: 100%; overflow-y: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); font-size: 14px; }
+  #app[data-layout="stacked"] .qc-meta, #app[data-layout="stacked"] .q-solved { justify-content: flex-start; }
+  #app[data-layout="stacked"] .q-heading { display: block; }
+  #app[data-layout="stacked"] .q-prompt { margin-top: .35em; font-size: 1.15em; }
+  #app[data-layout="stacked"] .qcard[data-prompt-first] { display: flex; flex-direction: column; }
+  #app[data-layout="stacked"] .qcard[data-prompt-first] .q-now { display: contents; }
+  #app[data-layout="stacked"] .qcard[data-prompt-first] .q-heading { order: -1; margin-bottom: .55em; padding-bottom: .55em; border-bottom: 1px solid rgba(148, 163, 184, .24); }
+  #app[data-layout="stacked"] .qcard[data-prompt-first] .q-options { order: 1; }
+  #app[data-layout="stacked"] .qcard[data-prompt-first] .q-feedback { order: 2; }
+  .q-options { display: grid; gap: 6px; width: 100%; margin: 8px 0 0; padding: 0; list-style: none; }
+  .opt { --k: var(--a); display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, .03); line-height: 1.4; cursor: crosshair; touch-action: pan-y; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .opt[data-k="B"] { --k: var(--b); }
+  .opt[data-k="C"] { --k: var(--c); }
+  .opt-key { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--k); color: #0b1020; font-weight: 800; }
+  .opt-mark { font-style: normal; font-weight: 800; font-size: 18px; }
+  .opt.is-hover { border-color: var(--k); }
+  .opt.is-sealed { opacity: .55; cursor: default; }
+  .opt.is-sealed .opt-key { background: #475569; }
+  .opt.is-sealed .opt-text .en { text-decoration: line-through; }
+  .opt.is-sealed .opt-mark::after { content: "✗"; color: var(--bad); }
+  .opt.is-locked { border-color: var(--ok); background: rgba(52, 211, 153, .12); }
+  .opt.is-locked .opt-mark::after { content: "✓"; color: var(--ok); }
+
+  /* ------------------------------------------------------------ overlays */
+  .overlay { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 18px; overflow: auto; border-radius: 18px; background: rgba(6, 10, 23, .8); backdrop-filter: blur(4px); }
+  .overlay--full { position: fixed; z-index: 10; border-radius: 0; background: radial-gradient(1200px 700px at 30% 20%, rgba(56, 189, 248, .14), transparent 60%), rgba(6, 10, 23, .93); }
+  .card { width: min(100%, 580px); padding: 26px 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); -webkit-user-select: text; user-select: text; }
+  .kicker { margin: 0; color: var(--a); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .card h1 { margin: 6px 0 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.05; letter-spacing: -.02em; }
+  .card h2 { margin: 8px 0 0; font-size: 24px; line-height: 1.25; }
+  .lead { margin: 12px 0 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+  .how { display: grid; gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; counter-reset: how; }
+  .how li { counter-increment: how; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; font-size: 15px; line-height: 1.5; }
+  .how li::before { content: counter(how); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: #0b1020; font-weight: 800; }
+  .how b { display: block; }
+  .how span.en { color: var(--muted); }
+  .keys { margin: 18px 0 0; padding: 10px 14px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); font-size: 13px; line-height: 2; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 22px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border: 0; border-radius: 12px; background: var(--gold); color: #0b1020; font-size: 16px; font-weight: 800; cursor: pointer; text-decoration: none; }
+  .btn:hover { filter: brightness(1.08); }
+  .link { font-size: 14px; }
+  .section-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+  .section-choice { display: grid; gap: 4px; justify-items: start; text-align: left; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #0b1430; cursor: pointer; }
+  .section-choice:hover, .section-choice[aria-current="true"] { border-color: var(--a); }
+  .section-choice small { color: var(--muted); }
+  .section-choice:focus-visible, .q-figure:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .q-grid caption { caption-side: top; padding: 0 0 .3em; color: var(--muted); font-size: .9em; font-weight: 600; text-align: left; }
+  .q-grid th { padding: .15em .5em; border: 1px solid var(--line); background: rgba(56, 189, 248, .1); font-weight: 700; text-align: center; }
+  .q-grid th .zh, .q-grid td .zh, .q-grid caption .zh { font-size: .82em; }
+  .q-grid td { white-space: nowrap; }
+  .q-grid { max-width: 100%; }
+  body.show-zh .q-grid .zh { display: inline; margin: 0 0 0 .3em; }
+  #app[data-layout="overlay"] .qcard[data-reference][data-table] .q-reference { grid-template-columns: minmax(0, 1fr) minmax(9.5em, 46%); }
+  .q-grid[data-sideways] th[scope="row"] { text-align: left; white-space: nowrap; }
+  .q-grid[data-sideways] td { min-width: 2.6em; }
+  /* a data table spans the card under the scenario instead of squeezing beside it */
+  .qcard[data-table]:not([data-reference]) .q-grid { margin: .4em auto 0; font-size: .78em; }
+  .qcard[data-table]:not([data-reference]) .q-grid caption { text-align: center; }
+  #app[data-layout="stacked"] .qcard[data-table] .q-grid caption { text-align: left; }
+  #app[data-layout="stacked"] .qcard[data-table] .q-grid { margin-left: 0; }
+
+  .q-figure { display: block; max-width: 100%; margin: .45em auto; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: white; cursor: zoom-in; }
+  .q-figure img { display: block; max-width: 100%; max-height: 82px; object-fit: contain; }
+  #app[data-layout="overlay"] .q-figure img { max-height: clamp(58px, calc(100px * var(--u)), 135px); }
+  .q-grid { margin: .45em auto; border-collapse: collapse; font-size: .82em; }
+  .q-grid td { min-width: 1.6em; padding: .1em .4em; border: 1px solid var(--line); text-align: center; }
+  .figure-dialog { width: min(800px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 16px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: var(--card); }
+  .figure-dialog::backdrop { background: rgba(4, 8, 18, .88); }
+  .figure-dialog form { text-align: right; }
+  .figure-dialog img { display: block; max-width: 100%; max-height: 66dvh; margin: 12px auto; border-radius: 5px; background: white; }
+  .figure-dialog p { margin: 8px 0 0; color: var(--muted); }
+  .history-dialog { width: min(340px, calc(100% - 24px)); }
+  .history-dialog form { position: absolute; top: 16px; right: 16px; }
+  .history-dialog h2 { margin: 2px 4em .8em 0; font-size: 17px; }
+  .history-dialog .history-list { max-height: min(50dvh, 360px); }
+
+  .stars { color: var(--gold); font-size: 34px; letter-spacing: 6px; line-height: 1.2; }
+  .stars .off { color: #334155; }
+  .stars--sm { font-size: 18px; letter-spacing: 2px; white-space: nowrap; }
+  .solution { display: grid; gap: 6px; margin: 14px 0 0; padding-left: 1.4em; font-size: 15px; line-height: 1.6; }
+  .solution li::marker { color: var(--ok); font-weight: 800; }
+  .official { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+  .hintbox { margin: 14px 0 0; padding: 12px 14px; border: 1px solid rgba(248, 113, 113, .5); border-radius: 12px; background: rgba(248, 113, 113, .1); font-size: 15px; line-height: 1.55; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+  .tile { padding: 12px 10px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, .03); text-align: center; }
+  .tile strong { display: block; font-size: 24px; line-height: 1.2; }
+  .tile span { color: var(--muted); font-size: 12px; }
+  .results { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+  .results li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 15px; line-height: 1.4; }
+  .results small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+  .results small.miss { color: #fca5a5; }
+
+  @media (max-height: 360px) {
+    #app[data-layout="stacked"] .qcard[data-prompt-first] .q-heading { padding-bottom: .35em; margin-bottom: .35em; }
+    #app[data-layout="stacked"] .q-prompt { margin-top: .2em; font-size: 1.03em; line-height: 1.22; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+
+  @media (max-width: 880px), (max-aspect-ratio: 1/1) {
+    .stage-wrap { padding: 8px; }
+    .overlay { position: fixed; z-index: 10; border-radius: 0; }
+    .card { padding: 20px 18px; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>
+</head>
+<body>
+<div id="app" data-screen="intro" data-layout="overlay">
+
+  <main class="stage-wrap" id="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="scene" id="scene">
+        <canvas id="arena" aria-label="Game arena"></canvas>
+        <div class="legend" id="legend" aria-hidden="true">
+          <span>Move</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+          <span>Aim</span><span><kbd>Mouse</kbd></span>
+          <span>Fire</span><span><kbd>Hold click</kbd></span>
+          <span>Keys only</span><span>hold <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></span>
+        </div>
+        <div class="history-slot" id="history-slot">
+          <aside class="run-history" id="run-history" aria-labelledby="run-history-title">
+            <h2 id="run-history-title">Question progress<span class="zh" lang="zh">题目进度</span></h2>
+            <ol class="history-list" id="run-history-list" tabindex="0"></ol>
+          </aside>
+        </div>
+      </div>
+
+      <div class="corner" id="corner">
+        <button type="button" class="chip" id="history-toggle" aria-haspopup="dialog" aria-controls="history-dialog" aria-expanded="false">History</button>
+        <button type="button" class="chip" id="btn-zh" aria-pressed="false" lang="zh">中文辅助</button>
+        <button type="button" class="chip" id="btn-sound" aria-pressed="true">Sound on</button>
+      </div>
+
+      <!-- the question: problem, steps solved so far, the current step and, after a wrong shot, its hint -->
+      <section class="qcard" id="qcard" hidden>
+        <div class="q-reference" id="q-reference">
+          <div class="q-copy">
+            <div class="qc-meta"><span id="q-source"></span><span class="q-type" id="q-type" hidden></span></div>
+            <div class="q-stem" id="q-stem"></div>
+            <ol class="q-solved" id="q-solved" hidden></ol>
+          </div>
+          <div class="q-media">
+            <button class="q-figure" type="button" id="q-figure" aria-label="Enlarge question figure" hidden><img id="q-figure-image" alt=""></button>
+            <table class="q-grid" id="q-grid" aria-label="Number array from the question" hidden><tbody></tbody></table>
+          </div>
+        </div>
+        <div class="q-now" id="q-now">
+          <div class="q-heading" id="q-heading">
+            <span class="q-badge" id="q-badge"></span>
+            <h2 class="q-prompt" id="q-prompt"></h2>
+          </div>
+          <ul class="q-options" id="q-options"></ul>
+        </div>
+        <div class="q-feedback" id="q-feedback" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <!-- after a monster is defeated -->
+      <section class="overlay" id="ov-review" hidden>
+        <div class="card">
+          <p class="kicker" id="rv-kicker"></p>
+          <div class="stars" id="rv-stars" aria-hidden="true"></div>
+          <h2 id="rv-title"></h2>
+          <ol class="solution" id="rv-steps"></ol>
+          <p class="official" id="rv-answer"></p>
+          <div class="actions">
+            <button type="button" class="btn" id="btn-next" data-primary>Next monster →</button>
+            <a class="link" id="rv-link" target="_blank" rel="noopener">Past-exam questions on this topic ↗</a>
+            <a class="link" href={url('play/')}>Choose unit</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- out of hearts -->
+      <section class="overlay" id="ov-down" hidden>
+        <div class="card">
+          <p class="kicker" style="color: var(--bad)">Out of hearts</p>
+          <h2>The monster won this round<span class="zh" lang="zh">这一轮怪兽赢了</span></h2>
+          <p class="lead">Every wrong part costs a heart. Read the hint, think it through, then fire.<span class="zh" lang="zh">每打错一个部位就会掉一颗心。先读提示，想清楚再开火。</span></p>
+          <div class="hintbox" id="dn-hint"></div>
+          <div class="actions">
+            <button type="button" class="btn" id="btn-retry" data-primary>Try this monster again</button>
+            <a class="link" href={url('play/')}>Choose unit</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- start screen -->
+  <section class="overlay overlay--full" id="ov-intro">
+    <div class="card">
+      <p class="kicker">AP Microeconomics</p>
+      <h1>Monster Shooter</h1>
+      <p class="lead">One monster per topic. Work through each economic scenario one step at a time.<span class="zh" lang="zh">每只怪兽对应一个考点，一步步分析经济学情境过关。</span></p>
+      <div class="section-choices" role="group" aria-label="Choose a unit">
+        {shooterData.sections.map((section, index) => (
+          <button class="section-choice" type="button" data-start-section={section.id} data-primary={index === 0 ? '' : undefined}>
+            <small>{section.label} · {section.encounters.length} levels</small>
+            <strong>{section.title.en}</strong>
+            <span lang="zh">{section.title.zh}</span>
+          </button>
+        ))}
+      </div>
+      <ol class="how">
+        <li><div><b>Read the step</b><span class="en">The card above the monster shows the scenario and one small question.</span><span class="zh" lang="zh">怪兽上方的卡片会显示情境和一个小问题。</span></div></li>
+        <li><div><b>Shoot the right part</b><span class="en">Each part carries one answer. Hold fire on the right part to break it.</span><span class="zh" lang="zh">每个部位对应一个选项。按住正确选项持续开火，击破部位。</span></div></li>
+        <li><div><b>Think before you fire</b><span class="en">A wrong part strikes back: you lose a heart and get a hint. While you break a part, dodge the orbs.</span><span class="zh" lang="zh">打错部位会被反击：掉一颗心，并得到一条提示。击破部位时记得躲开能量球。</span></div></li>
+      </ol>
+      <p class="keys">
+        Move <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys · Aim with the mouse · Hold click to fire<br>
+        Keyboard only: hold <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> · Touch: drag the lower arena to move, hold a part or answer to fire
+      </p>
+      <div class="actions">
+        <button type="button" class="chip" id="btn-zh-intro" aria-pressed="false" lang="zh">中文辅助</button>
+        <a class="link" id="intro-back-link" href={url()}>Back to question bank</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- results -->
+  <section class="overlay overlay--full" id="ov-summary" hidden>
+    <div class="card">
+      <p class="kicker" id="sm-kicker"></p>
+      <h1>Mission complete</h1>
+      <div class="tiles">
+        <div class="tile"><strong id="sm-stars"></strong><span>Stars</span></div>
+        <div class="tile"><strong id="sm-first"></strong><span>Steps right first time</span></div>
+        <div class="tile"><strong id="sm-time"></strong><span>Time</span></div>
+        <div class="tile"><strong id="sm-score"></strong><span>Score</span></div>
+      </div>
+      <ul class="results" id="sm-list"></ul>
+      <div class="actions">
+        <button type="button" class="btn" id="btn-again" data-primary>Play again</button>
+        <button type="button" class="chip" id="btn-choose">Choose unit</button>
+        <a class="link" id="sm-link" target="_blank" rel="noopener">Unit question index ↗</a>
+      </div>
+    </div>
+  </section>
+  <dialog class="figure-dialog" id="figure-dialog" aria-label="Question figure">
+    <form method="dialog"><button type="submit" class="chip">Close figure</button></form>
+    <img id="figure-image" alt="">
+    <p id="figure-caption"></p>
+  </dialog>
+  <dialog class="figure-dialog history-dialog" id="history-dialog" aria-labelledby="run-history-title">
+    <form method="dialog"><button type="submit" class="chip" autofocus>Close</button></form>
+  </dialog>
+</div>
+
+<script is:inline id="shooter-data" type="application/json" set:html={encodedData}></script>
+<script is:inline src={url('game/monster-shooter.js?v=1')}></script>
+</body>
+</html>

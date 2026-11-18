@@ -5,6 +5,7 @@ export const unitPath = (id: number) => sitePath(`units/${id}/`);
 export const topicPath = (id: string) => sitePath(`topics/${id}/`);
 export const examPath = (id: string) => sitePath(`exams/${id}/`);
 export const playPath = (topic?: string) => sitePath(topic ? `play/?topic=${topic}` : 'play/');
+export const playUnitPath = (unit: number) => sitePath(`play/?section=${unit}`);
 
 export const official = {
   course: 'https://apcentral.collegeboard.org/courses/ap-microeconomics',

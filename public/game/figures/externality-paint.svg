@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 300" width="420" height="300" font-family="Segoe UI, system-ui, -apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+  <title>Negative externality in the paint market</title>
+  <rect width="420" height="300" fill="#ffffff"/>
+  <!-- deadweight loss triangle between 6 and 8 cans -->
+  <polygon points="206,102 258,126 258,78" fill="#fecaca" stroke="none"/>
+  <text x="264" y="104" fill="#b91c1c" font-size="12" font-weight="700">DWL</text>
+  <!-- guides -->
+  <g stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3" fill="none">
+    <path d="M50 102 H206 V270"/>
+    <path d="M50 126 H258 V270"/>
+  </g>
+  <!-- axes -->
+  <g stroke="#0f172a" stroke-width="2" fill="none">
+    <path d="M50 24 V270 H385"/>
+    <path d="M45 32 L50 22 L55 32"/>
+    <path d="M377 265 L387 270 L377 275"/>
+  </g>
+  <g fill="#334155" font-size="13">
+    <text x="50" y="288" text-anchor="middle">0</text>
+    <text x="206" y="288" text-anchor="middle">6</text>
+    <text x="258" y="288" text-anchor="middle">8</text>
+    <text x="362" y="288" text-anchor="middle">12</text>
+    <text x="42" y="106" text-anchor="end">$14</text>
+    <text x="42" y="130" text-anchor="end">$12</text>
+    <text x="42" y="226" text-anchor="end">$4</text>
+    <text x="42" y="34" text-anchor="end">$20</text>
+  </g>
+  <text x="384" y="262" fill="#0f172a" font-size="12.5" font-weight="600" text-anchor="end">Cans of paint 油漆</text>
+  <text x="58" y="18" fill="#0f172a" font-size="12.5" font-weight="600">Price 价格</text>
+  <!-- curves -->
+  <line x1="50" y1="30" x2="362" y2="174" stroke="#2563eb" stroke-width="3"/>
+  <line x1="50" y1="222" x2="362" y2="78" stroke="#0f766e" stroke-width="3"/>
+  <line x1="50" y1="174" x2="362" y2="30" stroke="#c2410c" stroke-width="3"/>
+  <text x="318" y="194" fill="#2563eb" font-size="13" font-weight="700">D = MSB</text>
+  <text x="366" y="84" fill="#0f766e" font-size="13" font-weight="700">MPC</text>
+  <text x="366" y="36" fill="#c2410c" font-size="13" font-weight="700">MSC</text>
+  <!-- equilibria -->
+  <circle cx="258" cy="126" r="5" fill="#0f172a"/>
+  <circle cx="206" cy="102" r="5" fill="#0f172a"/>
+  <text x="250" y="148" fill="#0f172a" font-size="12" font-weight="600">Market</text>
+  <text x="150" y="94" fill="#0f172a" font-size="12" font-weight="600">Optimum</text>
+</svg>
