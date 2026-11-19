@@ -103,6 +103,8 @@ for (const [index, section] of shooter.sections.entries()) {
         if (key !== step.correct) assert.ok(option.hint?.en.trim() && /\p{Script=Han}/u.test(option.hint.zh), where + ' step ' + (s + 1) + ' distractor ' + key + ' needs a bilingual hint');
       }
       assert.ok(step.explanation.en.trim() && /\p{Script=Han}/u.test(step.explanation.zh), where + ' explanation');
+      assert.ok(step.concept?.en.trim() && /\p{Script=Han}/u.test(step.concept.zh), where + ' step ' + (s + 1) + ' needs a bilingual concept');
+      for (const [key, option] of Object.entries(step.options)) if (key !== step.correct) assert.ok(option.hint.en.length >= 60, where + ' step ' + (s + 1) + ' hint ' + key + ' should explain, not just nudge');
       assert.ok(step.takeaway.en.trim(), where + ' takeaway');
     }
     if (level.figure) figures.add(level.figure.src);

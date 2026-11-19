@@ -10,6 +10,8 @@ export type Step = {
   choices: readonly [Choice, Choice, Choice];
   correct: 0 | 1 | 2;
   explanation: Bilingual;
+  /** What the step tests: the principle, shown after every answer, right or wrong. */
+  concept: Bilingual;
   /** Short line shown under the scenario once the step is cleared. Defaults to the correct choice. */
   takeaway?: Bilingual;
 };

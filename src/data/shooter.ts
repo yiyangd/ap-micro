@@ -84,6 +84,7 @@ export const shooterData = {
             correct: keys[step.correct],
             takeaway: step.takeaway ?? step.choices[step.correct].text,
             explanation: step.explanation,
+            concept: step.concept,
           })),
           ...(mission.figure && { figure: { src: sitePath(`game/figures/${mission.figure.file}`), description: mission.figure.description } }),
           ...(mission.table && { table: mission.table }),

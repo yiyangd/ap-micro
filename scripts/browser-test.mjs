@@ -125,19 +125,37 @@ try {
       for (const [stepIndex, step] of level.steps.entries()) {
         if (stepIndex > 0) await advanceTo(desktop, 'think');
         await expect(desktop.locator('#q-prompt')).toContainText(step.prompt.en.slice(0, 24));
+        const feedback = desktop.locator('#q-feedback');
         if (stepIndex === 0) {
+          // a wrong shot pauses on why that choice is wrong and what the step tests
           const wrong = ['A', 'B', 'C'].find(key => key !== step.correct);
           const miss = await shoot(desktop, wrong, 'counter');
           assert.equal(miss.feedback, wrong, level.id + ' wrong shot should give feedback');
           assert.equal(miss.sealed, true, level.id + ' wrong part should seal');
-          await expect(desktop.locator('#q-feedback')).toHaveAttribute('data-kind', 'wrong');
-          await expect(desktop.locator('#q-feedback')).toContainText(step.options[wrong].hint.en.slice(0, 20));
+          await advanceTo(desktop, 'explain');
+          await expect(feedback).toHaveAttribute('data-kind', 'wrong');
+          await expect(feedback).toContainText(step.options[wrong].hint.en.slice(0, 30));
+          await expect(feedback.locator('.fb-concept')).toContainText(step.concept.en.slice(0, 30));
+          // nothing can be answered until the player continues
+          await desktop.evaluate(() => window.__shooter.advance(3));
+          assert.equal(await desktop.evaluate(() => window.__shooter.S.phase), 'explain', level.id + ' should wait on the explanation');
+          await feedback.locator('[data-continue]').click();
           await advanceTo(desktop, 'think');
         }
         const hit = await shoot(desktop, step.correct, 'stepClear');
         assert.equal(hit.cleared, stepIndex + 1, level.id + ' step ' + (stepIndex + 1) + ' should clear');
+        // a right answer pauses on why it is right and what the step tests
+        await advanceTo(desktop, 'explain');
+        await expect(feedback).toHaveAttribute('data-kind', 'right');
+        await expect(feedback).toContainText(step.explanation.en.slice(0, 30));
+        await expect(feedback.locator('.fb-concept')).toContainText(step.concept.en.slice(0, 30));
+        await desktop.evaluate(() => window.__shooter.advance(0.5));   // a player needs a moment to read
+        if (stepIndex === 1) await desktop.keyboard.press('Enter');
+        else await feedback.locator('[data-continue]').click();
+        await expect.poll(() => desktop.evaluate(() => window.__shooter.S.phase)).not.toBe('explain');
       }
       await advanceTo(desktop, 'review');
+      await expect(desktop.locator('#rv-steps .fb-concept')).toHaveCount(3);
       await expect(desktop.locator('#rv-steps li')).toHaveCount(3);
       await expect(desktop.locator('#rv-answer')).toContainText('Topic ' + level.id);
       await expect(desktop.locator('#rv-link')).toHaveAttribute('href', '/ap-micro/topics/' + level.id + '/');

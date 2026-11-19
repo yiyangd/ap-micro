@@ -96,11 +96,24 @@ const encodedData = JSON.stringify(shooterData).replace(/</g, '\\u003c');
   .q-badge { flex: none; padding: .18em .85em; border-radius: 999px; background: var(--gold); color: #0b1020; font-size: .68em; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
   .q-prompt { margin: 0; font-size: 1.28em; font-weight: 700; line-height: 1.3; text-wrap: balance; }
   .q-feedback { margin-top: .5em; padding: .4em .9em; border: 1px solid var(--line); border-radius: 10px; font-size: .9em; }
-  .q-feedback > b { margin-right: .7em; font-size: .78em; letter-spacing: .08em; text-transform: uppercase; }
+  .q-feedback { text-align: left; }
+  .q-feedback p { margin: 0; }
+  .q-feedback p + p { margin-top: .35em; }
   .q-feedback[data-kind="wrong"] { border-color: rgba(248, 113, 113, .55); background: rgba(248, 113, 113, .13); }
-  .q-feedback[data-kind="wrong"] > b { color: var(--bad); }
   .q-feedback[data-kind="right"] { border-color: rgba(52, 211, 153, .45); background: rgba(52, 211, 153, .11); }
-  .q-feedback[data-kind="right"] > b { color: var(--ok); }
+  .fb-title > b { margin-right: .6em; font-size: .78em; letter-spacing: .08em; text-transform: uppercase; }
+  .q-feedback[data-kind="wrong"] .fb-title > b { color: var(--bad); }
+  .q-feedback[data-kind="right"] .fb-title > b { color: var(--ok); }
+  .fb-choice { font-weight: 700; }
+  body.show-zh .fb-choice .zh { display: inline; margin-left: .4em; }
+  .fb-label { display: inline-block; margin-right: .55em; color: var(--muted); font-size: .72em; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+  .fb-concept { padding-top: .35em; border-top: 1px dashed rgba(148, 163, 184, .32); }
+  .fb-concept .fb-label { color: var(--gold); }
+  .fb-continue { display: inline-flex; align-items: center; gap: .45em; margin-top: .5em; padding: .4em 1em; border: 0; border-radius: 999px; background: var(--ok); color: #04111f; font-weight: 800; cursor: pointer; }
+  .q-feedback[data-kind="wrong"] .fb-continue { background: #fca5a5; }
+  .fb-continue:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .fb-continue kbd { border-color: rgba(4, 17, 31, .35); background: rgba(255, 255, 255, .45); color: #04111f; font-size: .78em; }
+  .solution .fb-concept, .hintbox .fb-concept { margin-top: .3em; font-size: .92em; }
 
   /* wide screens: the card floats over the sky at the top of the scene; answers are on the monster's parts */
   #app[data-layout="overlay"] .qcard {
@@ -116,7 +129,9 @@ const encodedData = JSON.stringify(shooterData).replace(/</g, '\\u003c');
   #app[data-layout="overlay"] .qcard[data-reference] .q-copy { text-align: left; }
   #app[data-layout="overlay"] .qcard[data-reference] .qc-meta, #app[data-layout="overlay"] .qcard[data-reference] .q-solved { justify-content: flex-start; }
   #app[data-layout="overlay"] .q-now { flex: none; }
-  #app[data-layout="overlay"] .q-feedback { min-height: 0; max-height: calc(54px * var(--u)); overflow-y: auto; }
+  #app[data-layout="overlay"] .q-feedback { min-height: 0; max-height: calc(120px * var(--u)); overflow-y: auto; flex: none; }
+  #app[data-layout="overlay"] .qcard[data-explain] { max-height: calc(320px * var(--u)); }
+  #app[data-layout="overlay"] .qcard[data-explain] .q-feedback { max-height: calc(220px * var(--u)); }
 
   /* narrow screens: the card sits above the scene and also lists the answers, because canvas text gets too small */
   #app[data-layout="stacked"] .stage { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; height: 100%; }
@@ -370,6 +385,6 @@ const encodedData = JSON.stringify(shooterData).replace(/</g, '\\u003c');
 </div>
 
 <script is:inline id="shooter-data" type="application/json" set:html={encodedData}></script>
-<script is:inline src={url('game/monster-shooter.js?v=1')}></script>
+<script is:inline src={url('game/monster-shooter.js?v=2')}></script>
 </body>
 </html>

@@ -68,7 +68,8 @@
       enter: T('A monster is coming…', '怪兽来了……'),
       first: T('Read the question above, then shoot part A, B or C.', '先读上面的题目，再射击 A、B 或 C 部位。'),
       think: T('Think first. Then aim at the right part and fire.', '先想清楚，再瞄准正确的部位开火。'),
-      counter: T('Wrong part. It strikes back! Read the hint above.', '打错部位，它反击了！看看上面的提示。'),
+      counter: T('Wrong part. It strikes back! Read why above.', '打错部位，它反击了！看看上面的解释。'),
+      explain: T('Read the explanation, then press Continue or Enter.', '读完上面的解释，再点“继续”或按回车键。'),
       break: T('Weak point! Hold fire to break it. Dodge the orbs.', '命中弱点！持续开火打掉它，躲开能量球。'),
       stepClear: T('Part destroyed!', '部位击破！'),
       rearm: T('New parts are growing. Read the next step above.', '新的部位长出来了。读上面的下一步。'),
@@ -103,6 +104,7 @@
   const plain = s => String(s).replace(FRAC, '$1/$2').replace(POWER, (_, digits) => digits.replace(/\d/g, digit => SUPER_DIGITS[Number(digit)]));
   // English line plus a Chinese help line; the help line is dropped when it would just repeat (plain numbers)
   const bi = o => `<span class="en">${fmt(o.en)}</span>${o.zh && o.zh !== o.en ? `<span class="zh" lang="zh">${fmt(o.zh)}</span>` : ''}`;
+  const conceptHtml = c => c ? `<p class="fb-concept"><span class="fb-label">What this tests<span class="zh zh-inline" lang="zh"> 考点</span></span>${bi(c)}</p>` : '';
   const starsHtml = n => '★'.repeat(n) + `<span class="off">${'★'.repeat(3 - n)}</span>`;
 
   // ================================================================ DOM
@@ -311,6 +313,21 @@
 
   function startThink() { S.thinkSeq++; setPhase('think'); }
 
+  /* After every answer, right or wrong, the game waits on the explanation until the player continues.
+     Nothing can be answered meanwhile, so guessing A, then B, then C is never quicker than reading. */
+  function explain() {
+    setPhase('explain'); renderCard();
+    revealInScrollArea(el.card, el.feedback);
+  }
+
+  function continueExplain() {
+    if (S.screen !== 'play' || S.phase !== 'explain' || S.phaseT < 0.3) return;   // a held fire key never skips it
+    const next = S.feedback?.next;
+    if (next === 'retry') { startThink(); renderCard(); return; }
+    S.feedback = null;
+    if (next === 'finish') { startDying(); renderCard(); } else nextStep();
+  }
+
   function nextStep() {
     S.si++; S.locked = null; S.armor = 1; S.stepWrong = 0; S.feedback = null;
     for (const p of pods) { p.state = 'idle'; p.grow = 0; p.flash = 0; }
@@ -327,7 +344,7 @@
   }
 
   function knockOut() {
-    $('dn-hint').innerHTML = S.lastHint ? `<b>Hint · ${S.lastHint.key}</b><br>${bi(S.lastHint.body)}` : '';
+    $('dn-hint').innerHTML = S.lastHint ? `<b>${esc(S.lastHint.title.en)}</b> ${bi(S.lastHint.choice)}<br>${bi(S.lastHint.body)}${conceptHtml(S.lastHint.concept)}` : '';
     $('dn-hint').hidden = !S.lastHint;
     setScreen('down'); renderCard(); sfx.down();
   }
@@ -346,7 +363,7 @@
     $('rv-kicker').textContent = `Monster defeated · ${e.label}`;
     $('rv-stars').innerHTML = starsHtml(st.stars);
     $('rv-title').innerHTML = bi(e.method.title);
-    $('rv-steps').innerHTML = e.steps.map(s => `<li>${bi(s.explanation)}</li>`).join('');
+    $('rv-steps').innerHTML = e.steps.map(s => `<li>${bi(s.explanation)}${conceptHtml(s.concept)}</li>`).join('');
     $('rv-answer').innerHTML = bi(e.reviewNote);
     $('rv-link').href = e.url;
     $('btn-next').textContent = S.ei < ENC.length - 1 ? 'Next monster →' : 'See results →';
@@ -416,7 +433,11 @@
     addFloat(p.x, p.y - p.r - 18, '✗', '#f87171', 34);
     addFloat(player.x, player.y - 52 * actor(), '−1 ♥', '#fca5a5', 22);
     burst(player.x, player.y - 6, '#f87171', 16, 240);
-    S.feedback = { kind: 'wrong', key: p.key, title: `Hint · ${p.key} is not it`, body: step().options[p.key].hint };
+    S.feedback = {
+      kind: 'wrong', key: p.key, next: 'retry',
+      title: T(`Not quite · ${p.key}`, `不对 · ${p.key}`), choice: step().options[p.key].text,
+      label: T('Why not', '为什么不对'), body: step().options[p.key].hint, concept: step().concept,
+    };
     S.lastHint = S.feedback;
     sfx.wrong();
     setPhase('counter'); renderCard();
@@ -433,7 +454,7 @@
     const pts = CFG.stepPoints[Math.min(S.stepWrong, 2)];
     S.score += pts;
     addFloat(p.x, p.y - p.r - 22, `WEAK POINT!  +${pts}`, '#fde047', 20);
-    S.feedback = { kind: 'right', key: p.key, title: `Correct · ${p.key}`, body: MSG.keepFiring };
+    S.feedback = { kind: 'right', key: p.key, title: T(`Correct · ${p.key}`, `正确 · ${p.key}`), choice: step().options[p.key].text, label: T('Now', '接下来'), body: MSG.keepFiring, concept: null };
     S.orbTimer = CFG.orbGrace; S.orbTurn = 0;
     sfx.lock();
     setPhase('break'); renderCard();
@@ -456,7 +477,12 @@
     orbs = [];
     S.shake = 20; monster.hurt = 1; monster.roar = 1;
     addFloat(p.x, p.y - 40, 'BROKEN!', '#ffffff', 26);
-    S.feedback = null;
+    const st = step();
+    S.feedback = {
+      kind: 'right', key: p.key, next: S.cleared >= enc().steps.length ? 'finish' : 'next',
+      title: T(`Correct · ${p.key}`, `正确 · ${p.key}`), choice: st.options[p.key].text,
+      label: T('Why', '为什么'), body: st.explanation, concept: st.concept,
+    };
     sfx.boom(); sfx.clear();
     setPhase('stepClear'); renderCard();
   }
@@ -675,8 +701,8 @@
 
     switch (S.phase) {
       case 'enter': if (S.phaseT >= CFG.time.enter) startThink(); break;
-      case 'counter': if (S.phaseT >= CFG.time.counter) { if (S.hearts <= 0) knockOut(); else startThink(); } break;
-      case 'stepClear': if (S.phaseT >= CFG.time.stepClear) { if (S.cleared >= enc().steps.length) startDying(); else nextStep(); } break;
+      case 'counter': if (S.phaseT >= CFG.time.counter) { if (S.hearts <= 0) knockOut(); else explain(); } break;
+      case 'stepClear': if (S.phaseT >= CFG.time.stepClear) explain(); break;
       case 'rearm': if (S.phaseT >= CFG.time.rearm) startThink(); break;
       case 'dying': {
         const m = monster;
@@ -1260,9 +1286,18 @@
       }).join('');
     }
 
-    const f = open ? S.feedback : null;
+    const explaining = S.phase === 'explain';
+    const f = open || explaining || S.phase === 'stepClear' ? S.feedback : null;
     el.feedback.hidden = !f;
-    if (f) { el.feedback.dataset.kind = f.kind; el.feedback.innerHTML = `<b>${esc(f.title)}</b>${bi(f.body)}`; }
+    el.card.toggleAttribute('data-explain', Boolean(f && (explaining || S.phase === 'stepClear')));
+    if (f) {
+      el.feedback.dataset.kind = f.kind;
+      const action = { retry: T('Got it · try again', '明白了，再试一次'), next: T('Next step →', '下一步 →'), finish: T('Defeat the monster →', '击败怪兽 →') }[f.next];
+      el.feedback.innerHTML = `<p class="fb-title"><b>${esc(f.title.en)}<span class="zh zh-inline" lang="zh"> ${esc(f.title.zh)}</span></b> <span class="fb-choice">${bi(f.choice)}</span></p>`
+        + `<p class="fb-why"><span class="fb-label">${esc(f.label.en)}<span class="zh zh-inline" lang="zh"> ${esc(f.label.zh)}</span></span>${bi(f.body)}</p>`
+        + conceptHtml(f.concept)
+        + (explaining ? `<button type="button" class="fb-continue" data-continue>${esc(action.en)}<span class="zh zh-inline" lang="zh"> ${esc(action.zh)}</span> <kbd>Enter</kbd></button>` : '');
+    }
     syncHover();
     updatePromptOrder();
     measureCard();
@@ -1290,6 +1325,11 @@
     if (e.altKey || e.ctrlKey || e.metaKey || S.screen !== 'play' || modalOpen()) return;
     if (e.target instanceof Node && el.history.contains(e.target)) return;
     const k = e.key.toLowerCase();
+    if (S.phase === 'explain' && (k === 'enter' || k === ' ' || FIRE_KEY[k])) {
+      e.preventDefault();
+      if (!e.repeat) continueExplain();
+      return;
+    }
     if (k === ' ' && e.target instanceof HTMLButtonElement) return;
     if (MOVE_KEY[k] || FIRE_KEY[k] || k === ' ') e.preventDefault();
     if (e.repeat) return;
@@ -1303,6 +1343,7 @@
     if (FIRE_KEY[k] && input.autoKey === FIRE_KEY[k]) input.autoKey = null;
     if (k === ' ') input.space = false;
   });
+  el.feedback.addEventListener('click', e => { if (e.target.closest('[data-continue]')) continueExplain(); });
   window.addEventListener('blur', clearInput);
   document.addEventListener('visibilitychange', clearInput);
 
@@ -1310,6 +1351,7 @@
     audio.ensure();
     input.lastType = e.pointerType;
     if (S.screen !== 'play') return;
+    if (S.phase === 'explain') { e.preventDefault(); continueExplain(); return; }
     const p = toLogical(e);
     if (e.pointerType === 'mouse') {
       if (e.button !== 0) return;
